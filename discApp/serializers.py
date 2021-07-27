@@ -59,12 +59,11 @@ class CompanySerializer(serializers.ModelSerializer):
 
 class CompanySerializer2(serializers.ModelSerializer):
     """Для краткой информацииж об компании"""
-    city = serializers.CharField()
     class Meta:
         model = models.Company
         fields = ('name',
                   'image',
-                  'city')
+                  )
 
 
 class DiscountSerialzier(serializers.ModelSerializer):
@@ -84,6 +83,7 @@ class DiscountShortSerialzier(serializers.ModelSerializer):
     description = DescriptionSerializer()
     company = CompanySerializer2()
     views = serializers.IntegerField()
+    city = serializers.SlugField()
 
     class Meta:
         model = models.Discount
@@ -92,4 +92,5 @@ class DiscountShortSerialzier(serializers.ModelSerializer):
                   'description',
                   'company',
                   'views',
+                  'city'
                   )

@@ -59,6 +59,10 @@ class Discount(models.Model):
     def views(self):
         return WatchedAmount.objects.filter(discount=self).get().amount
 
+    @property
+    def city(self):
+        return self.company.city
+
 
 class WatchedAmount(models.Model):
     """Счетчик просмотров акций в приложении"""
@@ -86,7 +90,6 @@ class Company(models.Model):
     image = models.ImageField(upload_to='media/company')
     address = models.ForeignKey('Address', on_delete=models.CASCADE)
     phone_number = models.ForeignKey('Number', on_delete=models.CASCADE)
-    social_net = models.ForeignKey('SocialNet', on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.name} {self.address}'
@@ -112,9 +115,10 @@ class SocialNet(models.Model):
     type = models.CharField(choices=TYPE, max_length=50, default=VK)
     active = models.BooleanField(default=True)
     logo = models.ImageField(upload_to='media/social', null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return f'СС {self.type}'
+        return f'СС {self.type} {self.company}'
 
 
 class Address(models.Model):
@@ -177,7 +181,7 @@ class Review(models.Model):
     """Отзыв"""
     text = models.TextField()
     add_date = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(Client, on_delete=models.CASCADE)
+    author = models.CharField('Автор', max_length=25)
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
 
     def __str__(self):
