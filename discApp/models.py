@@ -48,9 +48,10 @@ class Discount(models.Model):
     description = models.ForeignKey(Description, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     company = models.ForeignKey('Company', on_delete=models.CASCADE)
+    instruction = models.ForeignKey('Instruction', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return f'{self.percentage}%  {self.company.name} {self.company.address.city}'
+        return f'{self.percentage}%  {self.company.name} {self.city}'
 
     def increment(self):
         WatchedAmount.objects.filter(discount=self).last().increment()
@@ -88,15 +89,21 @@ class Company(models.Model):
     """Филиалы главной компании"""
     name = models.CharField(max_length=255, verbose_name='Компания')
     image = models.ImageField(upload_to='media/company')
-    address = models.ForeignKey('Address', on_delete=models.CASCADE)
-    phone_number = models.ForeignKey('Number', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.name} {self.address}'
+        return f'{self.name}'
 
     @property
     def city(self):
-        return City.objects.get(city=self.address.city).city
+        return Address.objects.get(company=self).city
+
+    @property
+    def address(self):
+        return Address.objects.filter(company=self)
+
+    @property
+    def phone_number(self):
+        return Number.objects.filter(company=self)
 
 
 class SocialNet(models.Model):
@@ -115,7 +122,8 @@ class SocialNet(models.Model):
     type = models.CharField(choices=TYPE, max_length=50, default=VK)
     active = models.BooleanField(default=True)
     logo = models.ImageField(upload_to='media/social', null=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True,
+                                related_name='socials')
 
     def __str__(self):
         return f'СС {self.type} {self.company}'
@@ -128,17 +136,19 @@ class Address(models.Model):
     street = models.CharField('Улица', max_length=255)
     house = models.PositiveIntegerField('Дом')
     city = models.ForeignKey(City, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return f'{self.city}, {self.street} {self.house}'
+        return f'{self.company} {self.city}, {self.street} {self.house}'
 
 
 class Number(models.Model):
     """Телефонный номер"""
     phone = models.CharField('Номер телефона', max_length=25, unique=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return f'{self.phone}'
+        return f'{self.company} {self.phone}'
 
 
 class Client(models.Model):
@@ -186,5 +196,12 @@ class Review(models.Model):
 
     def __str__(self):
         return f'{self.author} на {self.discount}'
+
+
+class Instruction(models.Model):
+    text = models.TextField()
+
+    def __str__(self):
+        return 'Инструкция'
 
 

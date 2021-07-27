@@ -3,8 +3,8 @@ from rest_framework import generics, views, pagination, filters
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from discApp.models import Discount
-from . import serializers
-from .serializers import DiscountShortSerialzier
+
+from .serializers import DiscountShortSerialzier, DiscountSerialzier
 
 
 
@@ -14,7 +14,7 @@ class ListDiscountApi(generics.ListAPIView):
     # def get_queryset(self):
     #     queryset = Discount.objects.filter(active=True)
     #     return queryset
-    queryset = Discount.objects.filter()
+    queryset = Discount.objects.all()
     serializer_class = DiscountShortSerialzier
     pagination_class = pagination.LimitOffsetPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter, DjangoFilterBackend]
@@ -23,10 +23,18 @@ class ListDiscountApi(generics.ListAPIView):
     ordering_fields =['company__address__city']
 
 
-class ListDiscountApi2(views.APIView):
-    """Страница с полной информации об акциях"""
-    def get(self, request, city):
-        discounts = Discount.objects.filter(active=True).order_by('id')
-        serializer = serializers.DiscountSerialzier(discounts, many=True)
+class ListDiscountApi2(generics.RetrieveAPIView):
+    """Страница с полной информации об акции"""
+
+    queryset = Discount.objects.all()
+    serializer_class = DiscountSerialzier
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.increment()
+        serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+
 

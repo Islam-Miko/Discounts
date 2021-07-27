@@ -3,12 +3,22 @@ from . import models
 
 
 class DescriptionSerializer(serializers.ModelSerializer):
-    """Для полной информации"""
+    """Для  краткой информации"""
 
     class Meta:
         model = models.Description
         fields = ('description',
                   'days')
+
+
+class DescriptionSerializer2(serializers.ModelSerializer):
+    """Для полной информации"""
+
+    class Meta:
+        model = models.Description
+        fields = ('description',
+                  'days',
+                  'condition')
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -17,7 +27,10 @@ class AddressSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Address
-        fields = '__all__'
+        exclude = (
+            'id',
+            'company'
+        )
 
 
 class SocialSerializer(serializers.ModelSerializer):
@@ -26,7 +39,8 @@ class SocialSerializer(serializers.ModelSerializer):
         model = models.SocialNet
         exclude = (
             'id',
-            'active'
+            'active',
+            'company'
         )
 
 
@@ -37,14 +51,15 @@ class PhoneSerializer(serializers.ModelSerializer):
         model = models.Number
         exclude = (
             'id',
+            'company'
         )
 
 
 class CompanySerializer(serializers.ModelSerializer):
     """Для полной информацииж об компании"""
-    address = AddressSerializer()
-    social_net = SocialSerializer()
-    phone_number = PhoneSerializer()
+    address = AddressSerializer(many=True)
+    socials = SocialSerializer(many=True)
+    phone_number = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = models.Company
@@ -68,14 +83,19 @@ class CompanySerializer2(serializers.ModelSerializer):
 
 class DiscountSerialzier(serializers.ModelSerializer):
     """Для полной информации"""
-    description = DescriptionSerializer()
+    description = DescriptionSerializer2()
     company = CompanySerializer()
+    views = serializers.IntegerField()
+    instruction = serializers.SlugRelatedField(slug_field='text', queryset=models.Instruction.objects.all())
     class Meta:
         model = models.Discount
-        fields = ('percentage',
-                  'id',
-                  'description',
-                  'company')
+        exclude = (
+            'start_date',
+            'end_date',
+            'pincode',
+            'active',
+            'category'
+        )
 
 
 class DiscountShortSerialzier(serializers.ModelSerializer):

@@ -15,4 +15,5 @@ admin.site.register(models.SocialNet)
 admin.site.register(models.Number)
 admin.site.register(models.Address)
 admin.site.register(models.Review)
+admin.site.register(models.Instruction)
 
