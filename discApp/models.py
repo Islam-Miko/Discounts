@@ -47,13 +47,17 @@ class Discount(models.Model):
     active = models.BooleanField()
     description = models.ForeignKey(Description, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    company = models.ForeignKey('CompanyBranch', on_delete=models.CASCADE)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.percentage}%  {self.company.main_company.name}'
+        return f'{self.percentage}%  {self.company.name} {self.company.address.city}'
 
     def increment(self):
         WatchedAmount.objects.filter(discount=self).last().increment()
+
+    @property
+    def views(self):
+        return WatchedAmount.objects.filter(discount=self).get().amount
 
 
 class WatchedAmount(models.Model):
@@ -76,36 +80,41 @@ class WatchedAmount(models.Model):
             WatchedAmount.objects.create(discount=instance)
 
 
-class CompanyBranch(models.Model):
+class Company(models.Model):
     """Филиалы главной компании"""
+    name = models.CharField(max_length=255, verbose_name='Компания')
     image = models.ImageField(upload_to='media/company')
-    main_company = models.ForeignKey('MainCompany', on_delete=models.CASCADE)
     address = models.ForeignKey('Address', on_delete=models.CASCADE)
     phone_number = models.ForeignKey('Number', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.main_company.name} {self.address}'
-
-
-class MainCompany(models.Model):
-    """Главная компания"""
-    name = models.CharField(max_length=255, verbose_name='Компания')
     social_net = models.ForeignKey('SocialNet', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name} {self.address}'
+
+    @property
+    def city(self):
+        return City.objects.get(city=self.address.city).city
 
 
 class SocialNet(models.Model):
     """Социальные сети компании"""
-    instagram = models.CharField('Instagram', max_length=255)
-    facebook = models.CharField('FaceBook', max_length=255)
-    youtube = models.CharField('YouTube', max_length=255)
-    telegram = models.CharField('Telegram', max_length=255)
-    tiktok = models.CharField('TikTok', max_length=255)
+    INSTA = 'INSTA'
+    FB = 'FB'
+    VK = 'VK'
+    TIKTOK = 'TIKTOK'
+    TYPE = (
+        (INSTA, 'Инстаграм'),
+        (FB, 'FaceBook'),
+        (VK, 'ВКонтакте'),
+        (TIKTOK, 'TIKTOK'),
+    )
+    url = models.URLField(verbose_name='Ссылка на аккаунт', null=True)
+    type = models.CharField(choices=TYPE, max_length=50, default=VK)
+    active = models.BooleanField(default=True)
+    logo = models.ImageField(upload_to='media/social', null=True)
 
     def __str__(self):
-        return f'СС {self.pk}'
+        return f'СС {self.type}'
 
 
 class Address(models.Model):
@@ -119,9 +128,10 @@ class Address(models.Model):
     def __str__(self):
         return f'{self.city}, {self.street} {self.house}'
 
+
 class Number(models.Model):
     """Телефонный номер"""
-    phone = models.CharField('Номер телефона', max_length=25)
+    phone = models.CharField('Номер телефона', max_length=25, unique=True)
 
     def __str__(self):
         return f'{self.phone}'
@@ -129,7 +139,8 @@ class Number(models.Model):
 
 class Client(models.Model):
     """Пользователь-клиент"""
-    phone = models.CharField('номер телефона', max_length=25)
+    phone = models.CharField('номер телефона', max_length=25, unique=True)
+    passport = models.CharField('ИНН', max_length=25, unique=True, null=True)
     city = models.ForeignKey(City, on_delete=models.CASCADE)
 
     def __str__(self):
