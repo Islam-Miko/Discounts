@@ -4,8 +4,9 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from discApp.models import Discount, Review
 
-from .serializers import DiscountShortSerialzier, DiscountSerialzier, ReviewSerializer
+from .serializers import DiscountShortSerialzier, DiscountSerialzierDto, ReviewSerializer, CouponSerializer
 from .service import ByCityFilterBackend
+from .dtos import discountDtoWhole
 
 
 class ListDiscountApi(generics.ListAPIView):
@@ -16,18 +17,20 @@ class ListDiscountApi(generics.ListAPIView):
     pagination_class = pagination.LimitOffsetPagination
     filter_backends = [filters.OrderingFilter, filters.SearchFilter, DjangoFilterBackend, ByCityFilterBackend]
     filter_fields = ['active']
-    search_fields = ['category__type', 'description__description',]
+    search_fields = ['category__type',]
+    ordering_fields = ['order_num']
 
 
 class ListDiscountApi2(generics.RetrieveAPIView):
     """Страница с полной информации об акции"""
 
     queryset = Discount.objects.all()
-    serializer_class = DiscountSerialzier
+    serializer_class = DiscountSerialzierDto
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.increment()
+        instance = discountDtoWhole(instance)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -37,11 +40,15 @@ class CreateReviewApi(generics.CreateAPIView):
     serializer_class = ReviewSerializer
 
 
-# class ListDiscountApi3(generics.ListAPIView):
-#     """Страница с полной информации об акции"""
-#
-#     queryset = Discount.objects.all()
-#     serializer_class = DiscountSerialzier4
+class RetrieveCouponView(generics.RetrieveAPIView):
+    queryset = Discount.objects.all()
+    serializer_class = CouponSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # instance = couponDto(instance)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 

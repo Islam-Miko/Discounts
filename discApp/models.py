@@ -98,7 +98,7 @@ class WatchedAmount(models.Model):
 
 class Company(models.Model):
     """Филиалы главной компании"""
-    name = models.CharField(max_length=255, verbose_name='Компания')
+    name = models.CharField(max_length=255, verbose_name='Компания', unique=True)
     image = models.ImageField(upload_to='media/company')
 
     def __str__(self):
@@ -170,6 +170,7 @@ class ClientDiscount(models.Model):
     """История использований акций(купонов)"""
     STATUS = (
         ('BOOKED', 'Забронирован'),
+        ('WASTED', 'Просрочен'),
         ('ACTIVATED', 'Активирован')
     )
     add_date = models.DateTimeField(auto_now_add=True)

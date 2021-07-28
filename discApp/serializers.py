@@ -127,13 +127,52 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# class DiscountSerialzier4(serializers.ModelSerializer):
-#     """Для полной информации"""
-#     class Meta:
-#         model = models.Discount
-#         # exclude = (
-#         #     'views',
-#         #     'city',
-#         #     'city_order'
-#         # )
-#         fields = '__all__'
+class DiscountSerialzierDto(serializers.Serializer):
+    """Для полной информации"""
+    id = serializers.IntegerField()
+    description = serializers.CharField()
+    days = serializers.CharField()
+    condition = serializers.CharField()
+    work_hours = serializers.CharField()
+    company = serializers.CharField()
+    address = AddressSerializer()
+    socials = SocialSerializer(many=True)
+    phones = PhoneSerializer(many=True)
+    views = serializers.IntegerField()
+    instruction = serializers.CharField()
+    percentage = serializers.IntegerField()
+    order_num = serializers.IntegerField()
+
+
+class CouponSerializer(serializers.Serializer):
+    import datetime
+
+    format = '%d.%m.%Y %H:%M:%S'
+    today = datetime.datetime.today()
+    today += datetime.timedelta(days=2)
+
+    titel = serializers.CharField(default='СКИДОЧНЫЙ КУПОН', required=False)
+    company = serializers.SlugRelatedField(slug_field='name',
+                                           queryset=models.Company.objects.all())
+    percentage = serializers.IntegerField()
+    description = serializers.SlugRelatedField(slug_field='description',
+                                               queryset=models.Description.objects.all())
+    time_limit = serializers.CharField(default=f'Купон действует до {today.strftime(format)}')
+
+
+    # company = serializers.CharField()
+    # percentage = serializers.IntegerField()
+    # description = serializers.CharField()
+    # time_limit = serializers.CharField()
+# class DiscountSerialzierDtoShort(serializers.Serializer):
+#     """Для краткой информации"""
+#     id = serializers.IntegerField()
+#     description = serializers.CharField()
+#     days = serializers.CharField()
+#     company = CompanySerializer()
+#     views = serializers.IntegerField()
+#     instruction = serializers.CharField()
+#     percentage = serializers.IntegerField()
+#     order_num = serializers.IntegerField()
+#     city = serializers.CharField()
+#     city_order = serializers.IntegerField
