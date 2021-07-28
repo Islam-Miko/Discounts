@@ -57,9 +57,9 @@ class PhoneSerializer(serializers.ModelSerializer):
 
 class CompanySerializer(serializers.ModelSerializer):
     """Для полной информацииж об компании"""
-    address = AddressSerializer(many=True)
+    addresses = AddressSerializer(many=True)
     socials = SocialSerializer(many=True)
-    phone_number = serializers.StringRelatedField(many=True)
+    phones = PhoneSerializer(many=True)
 
     class Meta:
         model = models.Company
@@ -87,6 +87,7 @@ class DiscountSerialzier(serializers.ModelSerializer):
     company = CompanySerializer()
     views = serializers.IntegerField()
     instruction = serializers.SlugRelatedField(slug_field='text', queryset=models.Instruction.objects.all())
+
     class Meta:
         model = models.Discount
         exclude = (

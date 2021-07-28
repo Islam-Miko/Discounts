@@ -97,14 +97,6 @@ class Company(models.Model):
     def city(self):
         return Address.objects.get(company=self).city
 
-    @property
-    def address(self):
-        return Address.objects.filter(company=self)
-
-    @property
-    def phone_number(self):
-        return Number.objects.filter(company=self)
-
 
 class SocialNet(models.Model):
     """Социальные сети компании"""
@@ -136,7 +128,8 @@ class Address(models.Model):
     street = models.CharField('Улица', max_length=255)
     house = models.PositiveIntegerField('Дом')
     city = models.ForeignKey(City, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True,
+                                related_name='addresses')
 
     def __str__(self):
         return f'{self.company} {self.city}, {self.street} {self.house}'
@@ -145,7 +138,8 @@ class Address(models.Model):
 class Number(models.Model):
     """Телефонный номер"""
     phone = models.CharField('Номер телефона', max_length=25, unique=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True,
+                                related_name='phones')
 
     def __str__(self):
         return f'{self.company} {self.phone}'
