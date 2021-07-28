@@ -18,7 +18,8 @@ class DescriptionSerializer2(serializers.ModelSerializer):
         model = models.Description
         fields = ('description',
                   'days',
-                  'condition')
+                  'condition',
+                  'work_hours')
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -113,5 +114,26 @@ class DiscountShortSerialzier(serializers.ModelSerializer):
                   'description',
                   'company',
                   'views',
-                  'city'
+                  'city',
+                  'order_num',
+                  'city_order'
                   )
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """Для краткой информацииж об компании"""
+    class Meta:
+        model = models.Review
+        fields = '__all__'
+
+
+# class DiscountSerialzier4(serializers.ModelSerializer):
+#     """Для полной информации"""
+#     class Meta:
+#         model = models.Discount
+#         # exclude = (
+#         #     'views',
+#         #     'city',
+#         #     'city_order'
+#         # )
+#         fields = '__all__'

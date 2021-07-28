@@ -18,10 +18,14 @@ class City(models.Model):
     """Города"""
     CITIES = (
         ('osh', 'Ош'),
-        ('bishkek', 'Бишкек')
+        ('bishkek', 'Бишкек'),
+        ('tokmok', 'Токмок'),
+        ('balykchy', 'Балыкчы')
     )
     city = models.CharField('Город', max_length=100,
-                            choices=CITIES)
+                            choices=CITIES,
+                            default=CITIES[1])
+    order_num = models.PositiveSmallIntegerField(default=1)
 
     def __str__(self):
         return f'{self.city}'
@@ -33,6 +37,7 @@ class Description(models.Model):
     condition = models.TextField(verbose_name='Условине')
     days = models.TextField(verbose_name='Дни использования')
     active = models.BooleanField()
+    work_hours = models.CharField('Время работы', max_length=255, null=True)
 
     def __str__(self):
         return f'Описание {self.pk}'
@@ -49,6 +54,7 @@ class Discount(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     company = models.ForeignKey('Company', on_delete=models.CASCADE)
     instruction = models.ForeignKey('Instruction', on_delete=models.CASCADE, null=True)
+    order_num = models.PositiveSmallIntegerField(default=1)
 
     def __str__(self):
         return f'{self.percentage}%  {self.company.name} {self.city}'
@@ -63,6 +69,11 @@ class Discount(models.Model):
     @property
     def city(self):
         return self.company.city
+
+    @property
+    def city_order(self):
+        return self.company.city.order_num
+
 
 
 class WatchedAmount(models.Model):
