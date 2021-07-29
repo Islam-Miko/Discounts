@@ -52,7 +52,8 @@ def mark_coupon_creation(discount, client):
         return True
 
     models.ClientDiscount.objects.filter(add_date__gte=day_48_hours_ago).get_or_create(discount=discount,
-                                                                                        client=client)
+                                                                                        client=client,
+                                                                                       status='BOOKED')
 
 
 def make_list_dto(queryset):
@@ -60,6 +61,12 @@ def make_list_dto(queryset):
     for query in queryset:
         a_list.append(dtos.discountDtoShort(query))
     return a_list
+
+
+def find_client_object(model, key):
+    return model.objects.filter(id=key).get()
+
+
 
 
 

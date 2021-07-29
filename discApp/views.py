@@ -1,11 +1,8 @@
-import datetime
-
-from rest_framework import generics, pagination, filters
+from rest_framework import generics, pagination, filters, status, views
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from discApp.models import Discount, Review, Client
-
-from .serializers import DiscountSerialzierDto, ReviewSerializer, CouponSerializer, DiscountSerialzierDtoShort
+from discApp.models import Discount, Review, Client, ClientDiscount
+from .serializers import DiscountSerialzierDto, ReviewSerializer, CouponSerializer, DiscountSerialzierDtoShort, ClientDiscountSerializer
 from . import service
 from .dtos import discountDtoWhole, couponDto
 from .service import make_list_dto
@@ -54,24 +51,38 @@ class CreateReviewApi(generics.CreateAPIView):
     serializer_class = ReviewSerializer
 
 
-class RetrieveCouponView(generics.RetrieveAPIView):
-    queryset = Discount.objects.all()
-    serializer_class = CouponSerializer
-
-    def get(self, request, *args, **kwargs):
-        disc_obj = self.get_object()
-        client = Client.objects.last()
+class RetrieveCouponView(views.APIView):
+    def get(self, request, pk, client):
+        try:
+            disc_obj = Discount.objects.filter(id=pk).get()
+            client = Client.objects.filter(id=client).get()
+        except (Client.DoesNotExist, Discount.DoesNotExist):
+            return Response({'Message':'Not Found'}, status=status.HTTP_404_NOT_FOUND)
         limits_are_reached = service.mark_coupon_creation(disc_obj, client)
         if limits_are_reached:
             return Response('you cannot')
-        return self.retrieve(request, *args, **kwargs)
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        client = Client.objects.last()
-        instance = couponDto(instance, client)
-        serializer = self.get_serializer(instance)
+        instance = couponDto(disc_obj, client)
+        serializer = CouponSerializer(instance)
         return Response(serializer.data)
+
+    def put(self, request, pk, client):
+        data = request.data
+        try:
+            disc_obj = Discount.objects.filter(id=pk).get()
+            client = Client.objects.filter(id=client).get()
+            instance = ClientDiscount.objects.filter(discount=disc_obj,
+                                                     client=client).last()
+        except (Client.DoesNotExist, Discount.DoesNotExist):
+            return Response({'Message':'Not Found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ClientDiscountSerializer(instance, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class ListApi(generics.ListAPIView):
+    queryset = ClientDiscount.objects.all()
+    serializer_class = ClientDiscountSerializer
 
 
 

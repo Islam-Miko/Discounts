@@ -164,3 +164,30 @@ class DiscountSerialzierDtoShort(serializers.Serializer):
     order_num = serializers.IntegerField()
     city = serializers.CharField()
     city_order = serializers.IntegerField()
+
+
+class ClientDiscountSerializer(serializers.ModelSerializer):
+
+    discount = serializers.SlugRelatedField(slug_field='id',
+                                            queryset=models.Discount.objects.all(),
+                                            required=False)
+    client = serializers.SlugRelatedField(slug_field='id',
+                                            queryset=models.Client.objects.all(),
+                                            required=False)
+
+    pincode = serializers.CharField(required=False, max_length=4,
+                                    min_length=4)
+
+    class Meta:
+        model = models.ClientDiscount
+        fields = '__all__'
+
+    def update(self, instance, validated_data):
+        pincode = validated_data.pop('pincode')
+        instance.discount = validated_data.get('discount', instance.discount)
+        instance.client = validated_data.get('client', instance.client)
+        discount_ = models.Discount.objects.filter(id=instance.discount.id).get()
+        if discount_.pincode == pincode:
+            instance.status = models.ClientDiscount.STATUS[2][0]
+        instance.save()
+        return instance
