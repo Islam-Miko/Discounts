@@ -38,7 +38,8 @@ class Description(models.Model):
     days = models.TextField(verbose_name='Дни использования')
     active = models.BooleanField()
     work_hours = models.CharField('Время работы', max_length=255, null=True)
-
+    discount = models.OneToOneField('Discount', on_delete=models.CASCADE,
+                                 related_name='description', null=True)
     def __str__(self):
         return f'Описание {self.pk}'
 
@@ -50,7 +51,6 @@ class Discount(models.Model):
     end_date = models.DateTimeField('Окончание акции')
     pincode = models.CharField(max_length=20, validators=[check_is_numeric,])
     active = models.BooleanField()
-    description = models.ForeignKey(Description, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     company = models.ForeignKey('Company', on_delete=models.CASCADE)
     instruction = models.ForeignKey('Instruction', on_delete=models.CASCADE, null=True)
@@ -163,7 +163,7 @@ class Client(models.Model):
     city = models.ForeignKey(City, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.phone}'
+        return f'{self.phone} {self.passport}'
 
 
 class ClientDiscount(models.Model):
@@ -175,7 +175,8 @@ class ClientDiscount(models.Model):
     )
     add_date = models.DateTimeField(auto_now_add=True)
     edit_date = models.DateTimeField(auto_now=True)
-    status = models.CharField(choices=STATUS, max_length=50)
+    status = models.CharField(choices=STATUS, max_length=50,
+                              default=STATUS[0][0])
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
 

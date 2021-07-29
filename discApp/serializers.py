@@ -145,25 +145,14 @@ class DiscountSerialzierDto(serializers.Serializer):
 
 
 class CouponSerializer(serializers.Serializer):
-    import datetime
-
-    format = '%d.%m.%Y %H:%M:%S'
-    today = datetime.datetime.today()
-    today += datetime.timedelta(days=2)
 
     titel = serializers.CharField(default='СКИДОЧНЫЙ КУПОН', required=False)
-    company = serializers.SlugRelatedField(slug_field='name',
-                                           queryset=models.Company.objects.all())
+    company = serializers.CharField()
     percentage = serializers.IntegerField()
-    description = serializers.SlugRelatedField(slug_field='description',
-                                               queryset=models.Description.objects.all())
-    time_limit = serializers.CharField(default=f'Купон действует до {today.strftime(format)}')
+    description = serializers.CharField()
+    time_limit = serializers.CharField()
 
 
-    # company = serializers.CharField()
-    # percentage = serializers.IntegerField()
-    # description = serializers.CharField()
-    # time_limit = serializers.CharField()
 # class DiscountSerialzierDtoShort(serializers.Serializer):
 #     """Для краткой информации"""
 #     id = serializers.IntegerField()

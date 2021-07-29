@@ -25,11 +25,17 @@ class couponDto:
     today = datetime.datetime.today()
     today += datetime.timedelta(days=2)
 
-    def __init__(self, discount):
-        self.company = discount.company.name
-        self.description=discount.description.description
+    todayy = datetime.datetime.today()
+    day_48_hours_ago = todayy - datetime.timedelta(days=2)
+
+    def __init__(self, discount, client):
+        self.duration_time = models.ClientDiscount.objects.filter(add_date__gte=self.day_48_hours_ago)\
+            .get(discount=discount,
+                 client=client).add_date + datetime.timedelta(days=2)
+        self.company = models.Company.objects.filter(discount=discount).get().name
+        self.description= discount.description.description
         self.percentage = discount.percentage
-        self.time_limit = f'Купон действует до {self.today.strftime(self.format)}'
+        self.time_limit = f'Купон действует до {self.duration_time}'
 
 
 
