@@ -2,10 +2,10 @@ import datetime
 
 from rest_framework import filters
 from collections import deque
-
-from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from . import models
+from . import dtos
+
 
 class ByCityFilterBackend(filters.BaseFilterBackend):
     """Кастомный фильтр по городам"""
@@ -29,7 +29,7 @@ class ByCityFilterBackend(filters.BaseFilterBackend):
 
         result = deque()
         for query in queryset:
-            if str(query.company.city) == search_terms:
+            if query.company.city.id == int(search_terms):
                 result.appendleft(query)
             else:
                 result.append(query)
@@ -53,6 +53,14 @@ def mark_coupon_creation(discount, client):
 
     models.ClientDiscount.objects.filter(add_date__gte=day_48_hours_ago).get_or_create(discount=discount,
                                                                                         client=client)
+
+
+def make_list_dto(queryset):
+    a_list = []
+    for query in queryset:
+        a_list.append(dtos.discountDtoShort(query))
+    return a_list
+
 
 
 

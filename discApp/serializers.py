@@ -153,15 +153,14 @@ class CouponSerializer(serializers.Serializer):
     time_limit = serializers.CharField()
 
 
-# class DiscountSerialzierDtoShort(serializers.Serializer):
-#     """Для краткой информации"""
-#     id = serializers.IntegerField()
-#     description = serializers.CharField()
-#     days = serializers.CharField()
-#     company = CompanySerializer()
-#     views = serializers.IntegerField()
-#     instruction = serializers.CharField()
-#     percentage = serializers.IntegerField()
-#     order_num = serializers.IntegerField()
-#     city = serializers.CharField()
-#     city_order = serializers.IntegerField
+class DiscountSerialzierDtoShort(serializers.Serializer):
+    """Для краткой информации"""
+    id = serializers.IntegerField()
+    description = serializers.CharField()
+    days = serializers.CharField()
+    company = CompanySerializer2()
+    views = serializers.IntegerField()
+    percentage = serializers.IntegerField()
+    order_num = serializers.IntegerField()
+    city = serializers.CharField()
+    city_order = serializers.IntegerField()

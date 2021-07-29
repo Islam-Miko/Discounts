@@ -39,14 +39,15 @@ class couponDto:
 
 
 
-# class discountDtoShort:
-#     def __init__(self, discount):
-#         self.id = discount[1].id
-#         self.description = discount.description.description
-#         self.days = discount.description.days
-#         self.company = discount.company
-#         self.city = models.Address.objects.filter(company=self.company).get().city
-#         self.views = models.WatchedAmount.objects.filter(discount=discount).get().amount
-#         self.percentage = discount.percentage
-#         self.city_order = models.Address.objects.filter(company=self.company).get().order_num
-#         self.order_num = discount.order_num
+class discountDtoShort:
+    """Для краткой информации об акциях"""
+    def __init__(self, discount):
+        self.id = discount.id
+        self.description = models.Description.objects.filter(discount=discount).get().description
+        self.days = discount.description.days
+        self.company = discount.company
+        self.city = models.Address.objects.filter(company=self.company).get().city
+        self.views = models.WatchedAmount.objects.filter(discount=discount).get().amount
+        self.percentage = discount.percentage
+        self.city_order = models.Address.objects.filter(company=self.company).get().city.order_num
+        self.order_num = discount.order_num
