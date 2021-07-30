@@ -141,7 +141,7 @@ class DiscountSerialzierDto(serializers.Serializer):
     views = serializers.IntegerField()
     instruction = serializers.CharField()
     percentage = serializers.IntegerField()
-    order_num = serializers.IntegerField()
+    # order_num = serializers.IntegerField()
 
 
 class CouponSerializer(serializers.Serializer):
@@ -151,6 +151,7 @@ class CouponSerializer(serializers.Serializer):
     percentage = serializers.IntegerField()
     description = serializers.CharField()
     time_limit = serializers.CharField()
+    logo = serializers.SlugField()
 
 
 class DiscountSerialzierDtoShort(serializers.Serializer):
@@ -161,9 +162,9 @@ class DiscountSerialzierDtoShort(serializers.Serializer):
     company = CompanySerializer2()
     views = serializers.IntegerField()
     percentage = serializers.IntegerField()
-    order_num = serializers.IntegerField()
+    # order_num = serializers.IntegerField()
     city = serializers.CharField()
-    city_order = serializers.IntegerField()
+    # city_order = serializers.IntegerField()
 
 
 class ClientDiscountSerializer(serializers.Serializer):

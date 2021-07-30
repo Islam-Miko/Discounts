@@ -17,7 +17,7 @@ class discountDtoWhole:
         self.views = discount.views
         self.instruction = discount.instruction
         self.percentage = discount.percentage
-        self.order_num = discount.order_num
+        # self.order_num = discount.order_num
 
 
 class couponDto:
@@ -34,6 +34,7 @@ class couponDto:
             .get(discount=discount,
                  client=client).add_date + datetime.timedelta(days=2)
         self.company = models.Company.objects.filter(discount=discount).get().name
+        self.logo = models.Company.objects.filter(discount=discount).get().image
         self.description= discount.description.description
         self.percentage = discount.percentage
         self.time_limit = f'Купон действует до {self.duration_time}'[0:38]
@@ -50,8 +51,8 @@ class discountDtoShort:
         self.city = models.Address.objects.filter(company=self.company).get().city
         self.views = models.WatchedAmount.objects.filter(discount=discount).get().amount
         self.percentage = discount.percentage
-        self.city_order = models.Address.objects.filter(company=self.company).get().city.order_num
-        self.order_num = discount.order_num
+        # self.city_order = models.Address.objects.filter(company=self.company).get().city.order_num
+        # self.order_num = discount.order_num
 
 
 # class couponActivaDto:

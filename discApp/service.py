@@ -50,9 +50,6 @@ def coupon_creation(discount, client):
 
     clients_last_coupon = models.ClientDiscount.objects.filter(discount=discount,
                                                                client=client).last()
-    print(day_use_of_discount)
-    print(total_uses_of_discount)
-
     # Запрос возвращает последний купон клиента на заданную акцию
     if clients_last_coupon:
         if clients_last_coupon.status == 'BOOKED':
