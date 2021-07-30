@@ -1,5 +1,5 @@
 import datetime
-
+import itertools
 from rest_framework import filters
 from collections import deque
 from rest_framework.settings import api_settings
@@ -26,34 +26,51 @@ class ByCityFilterBackend(filters.BaseFilterBackend):
         print(search_terms)
         if not search_terms:
             return queryset
+        needed_cities = filter(lambda x: x.company.city.id == int(search_terms), queryset)
+        rest_cities = filter(lambda x: x.company.city.id != int(search_terms), queryset)
 
-        result = deque()
-        for query in queryset:
-            if query.company.city.id == int(search_terms):
-                result.appendleft(query)
-            else:
-                result.append(query)
-
-        return result
+        return itertools.chain(needed_cities, rest_cities)
 
 
-def mark_coupon_creation(discount, client):
+def coupon_creation(discount, client):
     today = datetime.datetime.today()
     day_48_hours_ago = today - datetime.timedelta(days=2)
+    # day_48_hours_ago нужен, чтобы найти созданный в течение последних 2 суток объект со
+    # статусом BOOKED
 
-    day_use_of_discount = models.ClientDiscount.objects.filter(add_date__day=datetime.datetime.today().day,
-                                                                 discount=discount).count()
+    day_use_of_discount = models.ClientDiscount.objects.filter(add_date__day=today.day,
+                                                               discount=discount).count()
+    # Запрос возвращает количество полученных(или использованных) сегодня купонов у заданной акции
     total_uses_of_discount = models.ClientDiscount.objects.filter(status='ACTIVATED',
                                                                   discount=discount).count()
+    # Запрос возвращает сколько раз акция была применена клиентом
     day_limit = models.DiscountLimit.objects.filter(discount=discount).get().day_limit
     total_limit = models.DiscountLimit.objects.filter(discount=discount).get().total_limit
+    # Запросы возвращают лимиты заданные для акции
 
-    if day_use_of_discount == day_limit or total_uses_of_discount == total_limit:
-        return True
+    clients_last_coupon = models.ClientDiscount.objects.filter(discount=discount,
+                                                               client=client).last()
+    print(day_use_of_discount)
+    print(total_uses_of_discount)
+
+    # Запрос возвращает последний купон клиента на заданную акцию
+    if clients_last_coupon:
+        if clients_last_coupon.status == 'BOOKED':
+            return False, '_'
+    # Если у клиента есть купон и он ее еще не воспользовался, то на экране выйдет его купон
+
+    if total_uses_of_discount >= total_limit:
+        return True, 'No more Coupons.'
+    elif day_use_of_discount >= day_limit:
+        return True, 'No more Coupons for today, Im sorry!'
+    # Если условия ограничений количества использований акции превышены, то нельзя получить новый купон.
 
     models.ClientDiscount.objects.filter(add_date__gte=day_48_hours_ago).get_or_create(discount=discount,
-                                                                                        client=client,
+                                                                                       client=client,
                                                                                        status='BOOKED')
+# При первичном запросе создает запись в модели,
+#     ищет по дате за последнии 2 дня, так как купон дается на 2 дня
+    return False, ' '
 
 
 def make_list_dto(queryset):
@@ -63,9 +80,13 @@ def make_list_dto(queryset):
     return a_list
 
 
-def find_client_object(model, key):
-    return model.objects.filter(id=key).get()
+def get_object_by_id(queryset, id):
+    return queryset.objects.filter(id=id).get()
 
+
+def find_last_BOOKED_object_of_client(discount, client):
+    return models.ClientDiscount.objects.filter(discount=discount,
+                                                client=client, status='BOOKED').last()
 
 
 

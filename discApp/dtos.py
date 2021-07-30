@@ -36,7 +36,7 @@ class couponDto:
         self.company = models.Company.objects.filter(discount=discount).get().name
         self.description= discount.description.description
         self.percentage = discount.percentage
-        self.time_limit = f'Купон действует до {self.duration_time}'
+        self.time_limit = f'Купон действует до {self.duration_time}'[0:38]
 
 
 
@@ -52,3 +52,10 @@ class discountDtoShort:
         self.percentage = discount.percentage
         self.city_order = models.Address.objects.filter(company=self.company).get().city.order_num
         self.order_num = discount.order_num
+
+
+# class couponActivaDto:
+#     def __init__(self, pincode, discount, client):
+#         self.pincode = pincode
+#         self.discount = discount
+#         self.client = client
