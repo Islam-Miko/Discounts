@@ -99,7 +99,7 @@ class WatchedAmount(models.Model):
 class Company(models.Model):
     """Филиалы главной компании"""
     name = models.CharField(max_length=255, verbose_name='Компания', unique=True)
-    image = models.ImageField(upload_to='media/company')
+    image = models.ImageField(upload_to='media/company', verbose_name='Картинка')
 
     def __str__(self):
         return f'{self.name}'
@@ -122,9 +122,9 @@ class SocialNet(models.Model):
         (TIKTOK, 'TIKTOK'),
     )
     url = models.URLField(verbose_name='Ссылка на аккаунт', null=True)
-    type = models.CharField(choices=TYPE, max_length=50, default=VK)
+    type = models.CharField(choices=TYPE, max_length=50, default=VK, verbose_name='Тип')
     active = models.BooleanField(default=True)
-    logo = models.ImageField(upload_to='media/social', null=True)
+    logo = models.ImageField(upload_to='media/social', null=True, verbose_name='Лого')
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True,
                                 related_name='socials')
 
@@ -138,7 +138,7 @@ class Address(models.Model):
     latitude = models.DecimalField(verbose_name='Широта', max_digits=9, decimal_places=7)
     street = models.CharField('Улица', max_length=255)
     house = models.PositiveIntegerField('Дом')
-    city = models.ForeignKey(City, on_delete=models.CASCADE)
+    city = models.ForeignKey(City, on_delete=models.CASCADE, verbose_name='Город')
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True,
                                 related_name='addresses')
 
