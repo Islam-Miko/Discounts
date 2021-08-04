@@ -75,7 +75,6 @@ class Discount(models.Model):
         return self.company.city.order_num
 
 
-
 class WatchedAmount(models.Model):
     """Счетчик просмотров акций в приложении"""
     amount = models.PositiveIntegerField(verbose_name='Количество просмотров',

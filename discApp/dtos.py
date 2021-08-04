@@ -17,6 +17,7 @@ class discountDtoWhole:
         self.views = discount.views
         self.instruction = discount.instruction
         self.percentage = discount.percentage
+        self.image = discount.company.image
         # self.order_num = discount.order_num
 
 

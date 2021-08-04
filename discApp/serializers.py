@@ -141,6 +141,7 @@ class DiscountSerialzierDto(serializers.Serializer):
     views = serializers.IntegerField()
     instruction = serializers.CharField()
     percentage = serializers.IntegerField()
+    image = serializers.URLField()
     # order_num = serializers.IntegerField()
 
 
