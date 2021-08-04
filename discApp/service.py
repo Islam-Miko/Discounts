@@ -86,6 +86,15 @@ def find_last_BOOKED_object_of_client(discount, client):
                                                 client=client, status='BOOKED').last()
 
 
+def couponScheduler():
+    for_checking_querysets = models.ClientDiscount.objects.filter(status='BOOKED').all()
+    # print('Testing scheduler, couponScheduler part', for_checking_querysets)
+    hours_48 = datetime.timedelta(days=2)
+    today = datetime.datetime.today()
+    for check_obj in for_checking_querysets:
+        if str(check_obj.add_date + hours_48) <= str(today):
+            check_obj.status = models.ClientDiscount.STATUS[1][0]
+            check_obj.save()
 
 
 
