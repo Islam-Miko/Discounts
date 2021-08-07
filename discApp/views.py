@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import generics, pagination, filters, status, views
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,11 +16,13 @@ from .service import make_list_dto, get_object_by_id, find_last_BOOKED_object_of
 class ListDiscountApi(generics.ListAPIView):
     """Первичная страница с краткой информацией об акций"""
 
-    queryset = Discount.objects.all().order_by('company__addresses__city__order_num', 'order_num')
+    queryset = Discount.objects.filter(active=True,
+                                       start_date__lte=datetime.datetime.today(),
+                                       end_date__gte=datetime.datetime.today()).order_by('company__addresses__city__order_num', 'order_num')
     serializer_class = DiscountSerialzierDtoShort
     pagination_class = pagination.LimitOffsetPagination
-    filter_backends = [filters.OrderingFilter, filters.SearchFilter, DjangoFilterBackend, service.ByCityFilterBackend]
-    filter_fields = ['active']
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter, service.ByCityFilterBackend]
+    # filter_fields = ['active']
     search_fields = ['category__type',]
     ordering_fields = ['order_num']
 
