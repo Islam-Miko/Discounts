@@ -63,7 +63,7 @@ class Discount(models.Model):
         WatchedAmount.objects.filter(discount=self).last().increment()
 
     @property
-    def views(self):
+    def views(self) -> int:
         return WatchedAmount.objects.filter(discount=self).get().amount
 
     @property
@@ -71,7 +71,7 @@ class Discount(models.Model):
         return self.company.city
 
     @property
-    def city_order(self):
+    def city_order(self) -> int:
         return self.company.city.order_num
 
 
@@ -82,7 +82,7 @@ class WatchedAmount(models.Model):
     discount = models.OneToOneField(Discount, on_delete=models.CASCADE, null=True,
                                  unique=True)
 
-    def increment(self):
+    def increment(self) -> None:
         self.amount += 1
         self.save()
 
@@ -90,7 +90,7 @@ class WatchedAmount(models.Model):
         return f'{self.amount} {self.discount}'
 
     @receiver(post_save, sender=Discount)  # add this
-    def create_watched_disc(sender, instance, created, **kwargs):
+    def create_watched_disc(sender, instance, created, **kwargs) -> None:
         if created:
             WatchedAmount.objects.create(discount=instance)
 

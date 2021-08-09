@@ -9,7 +9,7 @@ from .serializers import (DiscountSerialzierDto, ReviewSerializer,
 
 from . import service
 from .dtos import discountDtoWhole, couponDto
-from .service import make_list_dto, get_object_by_id, find_last_BOOKED_object_of_client
+
 
 
 class ListDiscountApi(generics.ListAPIView):
@@ -27,7 +27,7 @@ class ListDiscountApi(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = make_list_dto(queryset)
+        queryset = service.make_list_dto(queryset)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -61,8 +61,8 @@ class CouponView(views.APIView):
     """Для получения купона"""
     def post(self, request):
         try:
-            discount = get_object_by_id(Discount, self.request.query_params.get('discount'))
-            client = get_object_by_id(Client, self.request.query_params.get('client'))
+            discount = service.get_object_by_id(Discount, self.request.query_params.get('discount'))
+            client = service.get_object_by_id(Client, self.request.query_params.get('client'))
         except Client.DoesNotExist:
             return Response({'Message': 'Client Not Found'}, status=status.HTTP_404_NOT_FOUND)
         except Discount.DoesNotExist:
@@ -80,8 +80,8 @@ class CouponActivate(views.APIView):
     """Для активации купона"""
     def post(self, request):
         try:
-            discount = get_object_by_id(Discount, self.request.query_params.get('discount'))
-            client = get_object_by_id(Client, self.request.query_params.get('client'))
+            discount = service.get_object_by_id(Discount, self.request.query_params.get('discount'))
+            client = service.get_object_by_id(Client, self.request.query_params.get('client'))
         except Client.DoesNotExist:
             return Response({'Message': 'Client Not Found'}, status=status.HTTP_404_NOT_FOUND)
         except Discount.DoesNotExist:
@@ -90,7 +90,7 @@ class CouponActivate(views.APIView):
         pincode = PincodeValidationSerialzier(data=request.data)
         pincode.is_valid(raise_exception=True)
 
-        instance_to_status_change = find_last_BOOKED_object_of_client(discount, client)
+        instance_to_status_change = service.find_last_BOOKED_object_of_client(discount, client)
         if instance_to_status_change:
             if discount.pincode == pincode.data.get('pincode'):
                 instance_to_status_change.status = ClientDiscount.STATUS[2][0]

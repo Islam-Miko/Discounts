@@ -32,7 +32,7 @@ class ByCityFilterBackend(filters.BaseFilterBackend):
         return itertools.chain(needed_cities, rest_cities)
 
 
-def coupon_creation(discount, client):
+def coupon_creation(discount: object, client: object) -> tuple[bool, str]:
     today = datetime.datetime.today()
     day_48_hours_ago = today - datetime.timedelta(days=2)
     # day_48_hours_ago нужен, чтобы найти созданный в течение последних 2 суток объект со
@@ -70,7 +70,7 @@ def coupon_creation(discount, client):
     return False, ' '
 
 
-def make_list_dto(queryset):
+def make_list_dto(queryset) -> list[object]:
     """для вывода списка объектов через дто"""
     a_list = []
     for query in queryset:
@@ -78,18 +78,18 @@ def make_list_dto(queryset):
     return a_list
 
 
-def get_object_by_id(queryset, id):
+def get_object_by_id(queryset, id: int) -> object:
     """Селектор для получения экземпляра по id из заданной модели"""
     return queryset.objects.filter(id=id).get()
 
 
-def find_last_BOOKED_object_of_client(discount, client):
+def find_last_BOOKED_object_of_client(discount: object, client: object) -> object:
     """При активации акции, меняем стаутс последней записи - возвращает посл.запись"""
     return models.ClientDiscount.objects.filter(discount=discount,
                                                 client=client, status='BOOKED').last()
 
 
-def couponScheduler():
+def couponScheduler() -> None:
     """Для бэкграунд чека - прошло ли время действия купона"""
     for_checking_querysets = models.ClientDiscount.objects.filter(status='BOOKED').all()
     hours_48 = datetime.timedelta(minutes=1)
