@@ -4,6 +4,7 @@ from . import models
 
 
 class discountDtoWhole:
+    """Для полного вывода инвы про акцию"""
     def __init__(self, discount):
         self.id = discount.id
         self.description = discount.description.description
@@ -15,13 +16,14 @@ class discountDtoWhole:
         self.socials = models.SocialNet.objects.filter(company=discount.company)
         self.phones = discount.company.phones
         self.views = discount.views
-        self.instruction = discount.instruction
+        self.instruction = discount.instruction.text
         self.percentage = discount.percentage
         self.image = discount.company.image
         # self.order_num = discount.order_num
 
 
 class couponDto:
+    """Для получения купона"""
     format = '%d.%m.%Y %H:%M:%S'
     today = datetime.datetime.today()
     today += datetime.timedelta(days=2)
@@ -56,8 +58,3 @@ class discountDtoShort:
         # self.order_num = discount.order_num
 
 
-# class couponActivaDto:
-#     def __init__(self, pincode, discount, client):
-#         self.pincode = pincode
-#         self.discount = discount
-#         self.client = client

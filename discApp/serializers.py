@@ -1,25 +1,5 @@
 from rest_framework import serializers
-from . import models
-
-
-class DescriptionSerializer(serializers.ModelSerializer):
-    """Для  краткой информации"""
-
-    class Meta:
-        model = models.Description
-        fields = ('description',
-                  'days')
-
-
-class DescriptionSerializer2(serializers.ModelSerializer):
-    """Для полной информации"""
-
-    class Meta:
-        model = models.Description
-        fields = ('description',
-                  'days',
-                  'condition',
-                  'work_hours')
+from . import models, validation_func
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -56,67 +36,12 @@ class PhoneSerializer(serializers.ModelSerializer):
         )
 
 
-class CompanySerializer(serializers.ModelSerializer):
-    """Для полной информацииж об компании"""
-    addresses = AddressSerializer(many=True)
-    socials = SocialSerializer(many=True)
-    phones = PhoneSerializer(many=True)
-
-    class Meta:
-        model = models.Company
-        # fields = ('name',
-        #           'phone_number',
-        #           'social_net'
-        #           'days')
-        exclude = (
-            'image',
-        )
-
-
 class CompanySerializer2(serializers.ModelSerializer):
     """Для краткой информацииж об компании"""
     class Meta:
         model = models.Company
         fields = ('name',
                   'image',
-                  )
-
-
-class DiscountSerialzier(serializers.ModelSerializer):
-    """Для полной информации"""
-    description = DescriptionSerializer2()
-    company = CompanySerializer()
-    views = serializers.IntegerField()
-    instruction = serializers.SlugRelatedField(slug_field='text', queryset=models.Instruction.objects.all())
-
-    class Meta:
-        model = models.Discount
-        exclude = (
-            'start_date',
-            'end_date',
-            'pincode',
-            'active',
-            'category'
-        )
-
-
-class DiscountShortSerialzier(serializers.ModelSerializer):
-    """Для краткой информации"""
-    description = DescriptionSerializer()
-    company = CompanySerializer2()
-    views = serializers.IntegerField()
-    city = serializers.SlugField()
-
-    class Meta:
-        model = models.Discount
-        fields = ('percentage',
-                  'id',
-                  'description',
-                  'company',
-                  'views',
-                  'city',
-                  'order_num',
-                  'city_order'
                   )
 
 
@@ -168,33 +93,9 @@ class DiscountSerialzierDtoShort(serializers.Serializer):
     # city_order = serializers.IntegerField()
 
 
-class ClientDiscountSerializer(serializers.Serializer):
-
-    discount = serializers.SlugRelatedField(slug_field='id',
-                                            queryset=models.Discount.objects.all(),
-                                            required=False)
-    client = serializers.SlugRelatedField(slug_field='id',
-                                            queryset=models.Client.objects.all(),
-                                            required=False)
-
-    pincode = serializers.CharField(required=True, max_length=4,
-                                    min_length=4)
-
-    def update(self, instance, validated_data):
-        pincode = validated_data.get('pincode')
-        instance.discount = validated_data.get('discount', instance.discount)
-        instance.client = validated_data.get('client', instance.client)
-        discount_ = models.Discount.objects.filter(id=instance.discount.id).get()
-        if discount_.pincode == pincode:
-            instance.status = models.ClientDiscount.STATUS[2][0]
-        else:
-            return instance
-        instance.save()
-        return instance
-
-
 class PincodeValidationSerialzier(serializers.Serializer):
     pincode = serializers.CharField(min_length=4,
-                                    max_length=4)
+                                    max_length=4,
+                                    validators=[validation_func.check_is_numeric,])
 
 

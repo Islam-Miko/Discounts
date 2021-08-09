@@ -71,6 +71,7 @@ def coupon_creation(discount, client):
 
 
 def make_list_dto(queryset):
+    """для вывода списка объектов через дто"""
     a_list = []
     for query in queryset:
         a_list.append(dtos.discountDtoShort(query))
@@ -78,18 +79,20 @@ def make_list_dto(queryset):
 
 
 def get_object_by_id(queryset, id):
+    """Селектор для получения экземпляра по id из заданной модели"""
     return queryset.objects.filter(id=id).get()
 
 
 def find_last_BOOKED_object_of_client(discount, client):
+    """При активации акции, меняем стаутс последней записи - возвращает посл.запись"""
     return models.ClientDiscount.objects.filter(discount=discount,
                                                 client=client, status='BOOKED').last()
 
 
 def couponScheduler():
+    """Для бэкграунд чека - прошло ли время действия купона"""
     for_checking_querysets = models.ClientDiscount.objects.filter(status='BOOKED').all()
-    # print('Testing scheduler, couponScheduler part', for_checking_querysets)
-    hours_48 = datetime.timedelta(days=2)
+    hours_48 = datetime.timedelta(minutes=1)
     today = datetime.datetime.today()
     for check_obj in for_checking_querysets:
         if str(check_obj.add_date + hours_48) <= str(today):
