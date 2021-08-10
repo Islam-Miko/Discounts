@@ -9,6 +9,7 @@ from .validation_func import (check_lte_100,
 class Category(models.Model):
     """Категория акций"""
     type = models.CharField('Категория', max_length=100)
+    order_num = models.IntegerField('Приоритет', default=0)
 
     def __str__(self):
         return f'{self.type}'
@@ -32,7 +33,7 @@ class Description(models.Model):
     work_hours = models.CharField('Время работы', max_length=255, null=True)
     discount = models.OneToOneField('Discount', on_delete=models.CASCADE,
                                  related_name='description', null=True)
-    
+
     def __str__(self):
         return f'Описание {self.pk}'
 

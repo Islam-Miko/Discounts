@@ -34,8 +34,7 @@ class couponDto:
     def __init__(self, discount, client):
         self.duration_time = models.ClientDiscount.objects.filter(add_date__gte=self.day_48_hours_ago,
                                                                   status='BOOKED')\
-            .get(discount=discount,
-                 client=client).add_date + datetime.timedelta(days=2)
+            .get(discount=discount, client=client).add_date + datetime.timedelta(days=2)
         self.company = models.Company.objects.filter(discount=discount).get().name
         self.logo = models.Company.objects.filter(discount=discount).get().image
         self.description= discount.description.description

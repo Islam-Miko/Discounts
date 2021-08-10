@@ -99,3 +99,9 @@ class PincodeValidationSerialzier(serializers.Serializer):
                                     validators=[validation_func.check_is_numeric,])
 
 
+class CategorySerialzir(serializers.ModelSerializer):
+    class Meta:
+        model = models.Category
+        fields = '__all__'
+
+

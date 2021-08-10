@@ -2,10 +2,10 @@ import datetime
 
 from rest_framework import generics, pagination, filters, status, views
 from rest_framework.response import Response
-from discApp.models import Discount, Review, Client, ClientDiscount
+from discApp.models import Discount, Review, Client, ClientDiscount, Category
 from .serializers import (DiscountSerialzierDto, ReviewSerializer,
                           CouponSerializer, DiscountSerialzierDtoShort,
-                          PincodeValidationSerialzier)
+                          PincodeValidationSerialzier, CategorySerialzir)
 
 from . import service
 from .dtos import discountDtoWhole, couponDto
@@ -100,3 +100,9 @@ class CouponActivate(views.APIView):
             return Response({"message": "invalid pincode",
                              "ok": False}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"No coupon Im sorry"})
+
+
+class CategoryView(generics.ListAPIView):
+    queryset = Category.objects.order_by('order_num').all()
+    serializer_class = CategorySerialzir
+

@@ -23,7 +23,6 @@ class ByCityFilterBackend(filters.BaseFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
         search_terms = self.get_search_terms(request)
-        print(search_terms)
         if not search_terms:
             return queryset
         needed_cities = filter(lambda x: x.company.city.id == int(search_terms), queryset)
@@ -57,6 +56,8 @@ def coupon_creation(discount: object, client: object) -> tuple[bool, str]:
     # Если у клиента есть купон и он ее еще не воспользовался, то на экране выйдет его купон
 
     if total_uses_of_discount >= total_limit:
+        discount.active = False
+        discount.save()
         return True, 'No more Coupons.'
     elif day_use_of_discount >= day_limit:
         return True, 'No more Coupons for today, Im sorry!'

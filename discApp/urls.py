@@ -11,4 +11,7 @@ urlpatterns = [
     # получение купона
     path('coupon/activate', views.CouponActivate.as_view()),
     # активация купона
+    path('categories', views.CategoryView.as_view()),
+    # получение купона
+
 ]
