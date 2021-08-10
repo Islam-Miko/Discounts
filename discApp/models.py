@@ -16,15 +16,7 @@ class Category(models.Model):
 
 class City(models.Model):
     """Города"""
-    CITIES = (
-        ('osh', 'Ош'),
-        ('bishkek', 'Бишкек'),
-        ('tokmok', 'Токмок'),
-        ('balykchy', 'Балыкчы')
-    )
-    city = models.CharField('Город', max_length=100,
-                            choices=CITIES,
-                            default=CITIES[1])
+    city = models.CharField('Город', max_length=100, unique=True)
     order_num = models.PositiveSmallIntegerField(default=1)
 
     def __str__(self):
@@ -40,6 +32,7 @@ class Description(models.Model):
     work_hours = models.CharField('Время работы', max_length=255, null=True)
     discount = models.OneToOneField('Discount', on_delete=models.CASCADE,
                                  related_name='description', null=True)
+    
     def __str__(self):
         return f'Описание {self.pk}'
 
