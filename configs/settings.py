@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'django_filters',
-    'discApp.apps.DiscappConfig',
+    'discounts.apps.DiscappConfig',
 ]
 
 MIDDLEWARE = [

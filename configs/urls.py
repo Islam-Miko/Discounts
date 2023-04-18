@@ -20,6 +20,6 @@ from django.urls import path, include
 from .yasg import urlpatterns as doc_file
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/', include('discApp.urls'),)
+    path('api/v1/', include('discounts.urls'),)
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += doc_file

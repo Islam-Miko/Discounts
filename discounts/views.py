@@ -2,7 +2,7 @@ import datetime
 
 from rest_framework import generics, pagination, filters, status, views
 from rest_framework.response import Response
-from discApp.models import Discount, Review, Client, ClientDiscount, Category
+from discounts.models import Discount, Review, Client, ClientDiscount, Category
 from .serializers import (DiscountSerialzierDto, ReviewSerializer,
                           CouponSerializer, DiscountSerialzierDtoShort,
                           PincodeValidationSerialzier, CategorySerialzir)

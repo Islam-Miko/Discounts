@@ -1,5 +1,5 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from discApp.service import couponScheduler
+from discounts.service import couponScheduler
 
 
 
