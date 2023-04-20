@@ -1,12 +1,22 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-from .validation_func import (check_lte_100,
-                              check_is_numeric)
+from django.utils.translation import gettext_lazy as _
 
 
-class Category(models.Model):
+
+class BaseModel(models.Model):
+    """
+    Base model with defined fields
+    """
+    class Meta:
+        abstract = True
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class Category(BaseModel):
     """Категория акций"""
     type = models.CharField('Категория', max_length=100)
     order_num = models.IntegerField('Приоритет', default=0)
@@ -15,7 +25,7 @@ class Category(models.Model):
         return f'{self.type}'
 
 
-class City(models.Model):
+class City(BaseModel):
     """Города"""
     city = models.CharField('Город', max_length=100, unique=True)
     order_num = models.PositiveSmallIntegerField(default=1)
@@ -24,7 +34,7 @@ class City(models.Model):
         return f'{self.city}'
 
 
-class Description(models.Model):
+class Description(BaseModel):
     """Описание акции с условиями"""
     description = models.TextField(verbose_name='Описание')
     condition = models.TextField(verbose_name='Условине')
@@ -38,12 +48,12 @@ class Description(models.Model):
         return f'Описание {self.pk}'
 
 
-class Discount(models.Model):
+class Discount(BaseModel):
     """Акция"""
-    percentage = models.PositiveSmallIntegerField('Процент скидки', validators=[check_lte_100,])
+    percentage = models.PositiveSmallIntegerField('Процент скидки')
     start_date = models.DateTimeField('Начало акции')
     end_date = models.DateTimeField('Окончание акции')
-    pincode = models.CharField(max_length=20, validators=[check_is_numeric,])
+    pincode = models.CharField(max_length=20)
     active = models.BooleanField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     company = models.ForeignKey('Company', on_delete=models.CASCADE)
@@ -69,7 +79,7 @@ class Discount(models.Model):
         return self.company.city.order_num
 
 
-class WatchedAmount(models.Model):
+class WatchedAmount(BaseModel):
     """Счетчик просмотров акций в приложении"""
     amount = models.PositiveIntegerField(verbose_name='Количество просмотров',
                                          default=0)
@@ -89,7 +99,7 @@ class WatchedAmount(models.Model):
             WatchedAmount.objects.create(discount=instance)
 
 
-class Company(models.Model):
+class Company(BaseModel):
     """Филиалы главной компании"""
     name = models.CharField(max_length=255, verbose_name='Компания', unique=True)
     image = models.ImageField(upload_to='media/company', verbose_name='Картинка')
@@ -102,20 +112,20 @@ class Company(models.Model):
         return Address.objects.get(company=self).city
 
 
-class SocialNet(models.Model):
+class SocialNet(BaseModel):
     """Социальные сети компании"""
-    INSTA = 'INSTA'
-    FB = 'FB'
-    VK = 'VK'
-    TIKTOK = 'TIKTOK'
-    TYPE = (
-        (INSTA, 'Инстаграм'),
-        (FB, 'FaceBook'),
-        (VK, 'ВКонтакте'),
-        (TIKTOK, 'TIKTOK'),
-    )
+    class SocialNetTypes(models.TextChoices):
+        INSTAGRAM = "Instagram"
+        FB = "Facebook"
+        TIKTOK = "TIKTOK"
+
     url = models.URLField(verbose_name='Ссылка на аккаунт', null=True)
-    type = models.CharField(choices=TYPE, max_length=50, default=VK, verbose_name='Тип')
+    type = models.CharField(
+        choices=SocialNetTypes.choices,
+        max_length=50,
+        default=SocialNetTypes.INSTAGRAM,
+        verbose_name='Тип'
+    )
     active = models.BooleanField(default=True)
     logo = models.ImageField(upload_to='media/social', null=True, verbose_name='Лого')
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True,
@@ -125,7 +135,7 @@ class SocialNet(models.Model):
         return f'СС {self.type} {self.company}'
 
 
-class Address(models.Model):
+class Address(BaseModel):
     """Адрес"""
     longitude = models.DecimalField(verbose_name='Долгота', max_digits=9, decimal_places=6)
     latitude = models.DecimalField(verbose_name='Широта', max_digits=9, decimal_places=7)
@@ -139,7 +149,7 @@ class Address(models.Model):
         return f'{self.company} {self.city}, {self.street} {self.house}'
 
 
-class Number(models.Model):
+class Number(BaseModel):
     """Телефонный номер"""
     phone = models.CharField('Номер телефона', max_length=25, unique=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True,
@@ -149,7 +159,7 @@ class Number(models.Model):
         return f'{self.company} {self.phone}'
 
 
-class Client(models.Model):
+class Client(BaseModel):
     """Пользователь-клиент"""
     phone = models.CharField('номер телефона', max_length=25, unique=True)
     passport = models.CharField('ИНН', max_length=25, unique=True, null=True)
@@ -159,17 +169,20 @@ class Client(models.Model):
         return f'{self.phone} {self.passport}'
 
 
-class ClientDiscount(models.Model):
+class ClientDiscount(BaseModel):
     """История использований акций(купонов)"""
-    STATUS = (
-        ('BOOKED', 'Забронирован'),
-        ('WASTED', 'Просрочен'),
-        ('ACTIVATED', 'Активирован')
-    )
+    class Statuses(models.TextChoices):
+        BOOKED = "BOOKED", _("BOOKED")
+        WASTED = "WASTED", _("WASTED")
+        ACTIVATED = "ACTIVATED", _("ACTIVATED")
+
     add_date = models.DateTimeField(auto_now_add=True)
     edit_date = models.DateTimeField(auto_now=True)
-    status = models.CharField(choices=STATUS, max_length=50,
-                              default=STATUS[0][0])
+    status = models.CharField(
+        choices=Statuses.choices,
+        max_length=50,
+        default=Statuses.BOOKED,
+    )
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
 
@@ -177,7 +190,7 @@ class ClientDiscount(models.Model):
         return f'{self.client.phone} - {self.status} {self.edit_date}'
 
 
-class DiscountLimit(models.Model):
+class DiscountLimit(BaseModel):
     """Ограничения для акции"""
     day_limit = models.PositiveSmallIntegerField(verbose_name='Ограничение на 1 день')
     total_limit = models.PositiveSmallIntegerField(verbose_name='Количество купонов')
@@ -187,7 +200,7 @@ class DiscountLimit(models.Model):
         return f' Лимиты {self.discount}'
 
 
-class Review(models.Model):
+class Review(BaseModel):
     """Отзыв"""
     text = models.TextField()
     add_date = models.DateTimeField(auto_now_add=True)
@@ -198,7 +211,7 @@ class Review(models.Model):
         return f'{self.author} на {self.discount}'
 
 
-class Instruction(models.Model):
+class Instruction(BaseModel):
     text = models.TextField()
 
     def __str__(self):
