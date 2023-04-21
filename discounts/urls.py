@@ -3,7 +3,7 @@ from . import views
 urlpatterns = [
     path('discounts/<int:pk>', views.ListDiscountApi2.as_view()),
     # Детальный просмотр акции
-    path('discounts', views.ListDiscountApi.as_view()),
+    path('discounts', views.DiscountListAPIView.as_view()),
     #  просмотр краткой информации об акциях
     path('review', views.CreateReviewApi.as_view()),
     # написания отзыва к акции

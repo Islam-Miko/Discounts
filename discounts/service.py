@@ -1,33 +1,7 @@
 import datetime
-import itertools
-from rest_framework import filters
-from rest_framework.settings import api_settings
 from . import models
 from . import dtos
 
-
-class ByCityFilterBackend(filters.BaseFilterBackend):
-    """Кастомный фильтр по городам"""
-    search_param = api_settings.SEARCH_PARAM
-
-    def get_search_terms(self, request):
-        """
-        Search terms are set by a ?search=... query parameter,
-        and may be comma and/or whitespace delimited.
-        """
-        params = request.query_params.get('city', '')
-        params = params.replace('\x00', '')  # strip null characters
-        params = params.replace(',', ' ')
-        return params
-
-    def filter_queryset(self, request, queryset, view):
-        search_terms = self.get_search_terms(request)
-        if not search_terms:
-            return queryset
-        needed_cities = filter(lambda x: x.company.city.id == int(search_terms), queryset)
-        rest_cities = filter(lambda x: x.company.city.id != int(search_terms), queryset)
-
-        return itertools.chain(needed_cities, rest_cities)
 
 
 def coupon_creation(discount: object, client: object) -> tuple[bool, str]:
