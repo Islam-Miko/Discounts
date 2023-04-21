@@ -1,40 +1,33 @@
-import datetime
-
 from rest_framework import generics, pagination, filters, status, views
 from rest_framework.response import Response
 from discounts.models import Discount, Review, Client, ClientDiscount, Category
 from .serializers import (DiscountSerialzierDto, ReviewSerializer,
-                          CouponSerializer, DiscountSerialzierDtoShort,
+                          CouponSerializer, DiscountFullInformationSerialzier,
                           PincodeValidationSerialzier, CategorySerialzir)
+from django.utils import timezone
+from . import service, filters as custom_filters
+from .dtos import couponDto
 
-from . import service
-from .dtos import discountDtoWhole, couponDto
 
-
-
-class ListDiscountApi(generics.ListAPIView):
-    """Первичная страница с краткой информацией об акций"""
-
-    queryset = Discount.objects.filter(active=True,
-                                       start_date__lte=datetime.datetime.today(),
-                                       end_date__gte=datetime.datetime.today()).order_by('company__addresses__city__order_num',
-                                                                                         'order_num')
-    serializer_class = DiscountSerialzierDtoShort
+class DiscountListAPIView(generics.ListAPIView):
+    """
+    APIView for all active Discounts
+    """
+    queryset = Discount.objects.filter(
+        active=True,
+        deleted_at__isnull=True,
+        start_date__lte=timezone.now(),
+        end_date__gte=timezone.now()
+        ).select_related("company", "category", "instruction").order_by(
+        'company__addresses__city__order_num',
+        'order_num'
+    )
+    serializer_class = DiscountFullInformationSerialzier
     pagination_class = pagination.LimitOffsetPagination
-    filter_backends = [filters.OrderingFilter, filters.SearchFilter, service.ByCityFilterBackend]
-    search_fields = ['category__type']
+    filter_backends = [filters.OrderingFilter, filters.SearchFilter, custom_filters.PriorityOrderFilter]
     ordering_fields = ['order_num']
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        queryset = service.make_list_dto(queryset)
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    search_fields = ['category__id']
+    priority_field = 'company__addresses__city'
 
 
 class ListDiscountApi2(generics.RetrieveAPIView):
@@ -46,7 +39,7 @@ class ListDiscountApi2(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.increment()
-        instance = discountDtoWhole(instance)
+        # instance = discountDtoWhole(instance)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
