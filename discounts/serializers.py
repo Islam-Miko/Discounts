@@ -2,6 +2,10 @@ from rest_framework import serializers
 from . import models, validation_func
 
 
+
+
+
+
 class AddressSerializer(serializers.ModelSerializer):
     """Для полной информации"""
     city = serializers.SlugRelatedField(slug_field='city', queryset=models.City.objects.all())
@@ -104,4 +108,15 @@ class CategorySerialzir(serializers.ModelSerializer):
         model = models.Category
         fields = '__all__'
 
+class DiscountSerializer(serializers.ModelSerializer):
+    pincode = serializers.CharField(write_only=True)
+    order_num = serializers.IntegerField(write_only=True)
+    
+    class Meta:
+        model = models.Discount
+        fields = ("__all__")
 
+class DiscountFullInformationSerialzier(DiscountSerializer):
+    category = serializers.CharField(source="category.type")
+    company = serializers.CharField(source="company.name")
+    instruction = serializers.CharField(source="instruction.text")
