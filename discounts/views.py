@@ -1,18 +1,11 @@
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import CharField, F, Prefetch, Value
+from django.db.models import CharField, F, Value
 from django.db.models.functions import Concat, JSONObject
 from django.utils import timezone
 from rest_framework import filters, generics, pagination, status, views
 from rest_framework.response import Response
 
-from discounts.models import (
-    Category,
-    Client,
-    ClientDiscount,
-    Company,
-    Discount,
-    Review,
-)
+from discounts.models import Category, Client, ClientDiscount, Discount, Review
 
 from . import filters as custom_filters
 from . import service
@@ -60,16 +53,11 @@ class DiscountDetailAPIView(generics.RetrieveAPIView):
     serializer_class = DiscountFullInformationSerializer
 
     def get_queryset(self):
-        company = Prefetch(
-            "company",
-            queryset=Company.objects.filter(
-                deleted_at__isnull=True
-            ).select_related("socials", "phones", "addresses"),
-        )
         queryset = (
             Discount.objects.filter(active=True)
-            .prefetch_related(company)
-            .select_related("description", "views", "company", "instruction")
+            .select_related(
+                "description", "views", "company", "instruction", "category"
+            )
             .annotate(
                 views_count=F("views__amount"),
                 discount_city=F("company__addresses__city__city"),

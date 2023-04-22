@@ -19,3 +19,4 @@ typing_extensions==4.5.0
 tzlocal==2.1
 uritemplate==3.0.1
 urllib3==1.26.6
+django-debug-toolbar==4.0.0
