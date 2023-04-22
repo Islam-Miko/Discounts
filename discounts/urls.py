@@ -3,7 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("discounts/<int:pk>", views.ListDiscountApi2.as_view()),
+    path("discounts/<int:pk>", views.DiscountDetailAPIView.as_view()),
     # Детальный просмотр акции
     path("discounts", views.DiscountListAPIView.as_view()),
     #  просмотр краткой информации об акциях

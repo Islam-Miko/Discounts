@@ -50,24 +50,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DiscountSerialzierDto(serializers.Serializer):
-    """Для полной информации"""
-
-    id = serializers.IntegerField()
-    description = serializers.CharField()
-    days = serializers.CharField()
-    condition = serializers.CharField()
-    work_hours = serializers.CharField()
-    company = serializers.CharField()
-    address = AddressSerializer()
-    socials = SocialSerializer(many=True)
-    phones = PhoneSerializer(many=True)
-    views = serializers.IntegerField()
-    instruction = serializers.CharField()
-    percentage = serializers.IntegerField()
-    image = serializers.URLField()
-
-
 class CouponSerializer(serializers.Serializer):
 
     titel = serializers.CharField(default="СКИДОЧНЫЙ КУПОН", required=False)
@@ -76,18 +58,6 @@ class CouponSerializer(serializers.Serializer):
     description = serializers.CharField()
     time_limit = serializers.CharField()
     logo = serializers.SlugField()
-
-
-class DiscountSerialzierDtoShort(serializers.Serializer):
-    """Для краткой информации"""
-
-    id = serializers.IntegerField()
-    description = serializers.CharField()
-    days = serializers.CharField()
-    company = CompanySerializer2()
-    views = serializers.IntegerField()
-    percentage = serializers.IntegerField()
-    city = serializers.CharField()
 
 
 class PincodeValidationSerialzier(serializers.Serializer):
@@ -115,7 +85,34 @@ class DiscountSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DiscountFullInformationSerialzier(DiscountSerializer):
+class DiscountShortInformationSerializer(DiscountSerializer):
     category = serializers.CharField(source="category.type")
     company = serializers.CharField(source="company.name")
     instruction = serializers.CharField(source="instruction.text")
+
+
+class CompanyFullInformationSerializer(CompanySerializer2):
+    class Meta(CompanySerializer2.Meta):
+        fields = "__all__"
+
+
+class InstuctionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Instruction
+        fields = "__all__"
+
+
+class DescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Description
+        fields = "__all__"
+
+
+class DiscountFullInformationSerializer(DiscountShortInformationSerializer):
+    views_count = serializers.IntegerField()
+    company = CompanyFullInformationSerializer()
+    description = DescriptionSerializer()
+    company_socials = serializers.ListSerializer(child=serializers.DictField())
+    company_phones = serializers.ListField(child=serializers.CharField())
+    addres = serializers.CharField()
+    discount_city = serializers.CharField()

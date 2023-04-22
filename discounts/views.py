@@ -1,8 +1,18 @@
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import CharField, F, Prefetch, Value
+from django.db.models.functions import Concat, JSONObject
 from django.utils import timezone
 from rest_framework import filters, generics, pagination, status, views
 from rest_framework.response import Response
 
-from discounts.models import Category, Client, ClientDiscount, Discount, Review
+from discounts.models import (
+    Category,
+    Client,
+    ClientDiscount,
+    Company,
+    Discount,
+    Review,
+)
 
 from . import filters as custom_filters
 from . import service
@@ -10,8 +20,8 @@ from .dtos import couponDto
 from .serializers import (
     CategorySerialzir,
     CouponSerializer,
-    DiscountFullInformationSerialzier,
-    DiscountSerialzierDto,
+    DiscountFullInformationSerializer,
+    DiscountShortInformationSerializer,
     PincodeValidationSerialzier,
     ReviewSerializer,
 )
@@ -32,7 +42,7 @@ class DiscountListAPIView(generics.ListAPIView):
         .select_related("company", "category", "instruction")
         .order_by("company__addresses__city__order_num", "order_num")
     )
-    serializer_class = DiscountFullInformationSerialzier
+    serializer_class = DiscountShortInformationSerializer
     pagination_class = pagination.LimitOffsetPagination
     filter_backends = [
         filters.OrderingFilter,
@@ -44,18 +54,42 @@ class DiscountListAPIView(generics.ListAPIView):
     priority_field = "company__addresses__city"
 
 
-class ListDiscountApi2(generics.RetrieveAPIView):
-    """Страница с полной информации об акции"""
+class DiscountDetailAPIView(generics.RetrieveAPIView):
+    """APIView for detail view for Discount"""
 
-    queryset = Discount.objects.filter(active=True).all()
-    serializer_class = DiscountSerialzierDto
+    serializer_class = DiscountFullInformationSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.increment()
-        # instance = discountDtoWhole(instance)
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+    def get_queryset(self):
+        company = Prefetch(
+            "company",
+            queryset=Company.objects.filter(
+                deleted_at__isnull=True
+            ).select_related("socials", "phones", "addresses"),
+        )
+        queryset = (
+            Discount.objects.filter(active=True)
+            .prefetch_related(company)
+            .select_related("description", "views", "company", "instruction")
+            .annotate(
+                views_count=F("views__amount"),
+                discount_city=F("company__addresses__city__city"),
+                addres=Concat(
+                    F("company__addresses__street"),
+                    Value(" "),
+                    F("company__addresses__house"),
+                    output_field=CharField(),
+                ),
+                company_phones=ArrayAgg(F("company__phones__phone")),
+                company_socials=ArrayAgg(
+                    JSONObject(
+                        url=F("company__socials__url"),
+                        type=F("company__socials__type"),
+                        logo=F("company__socials__logo"),
+                    )
+                ),
+            )
+        )
+        return queryset
 
 
 class CreateReviewApi(generics.CreateAPIView):

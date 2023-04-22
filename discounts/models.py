@@ -97,7 +97,11 @@ class WatchedAmount(BaseModel):
         verbose_name="Количество просмотров", default=0
     )
     discount = models.OneToOneField(
-        Discount, on_delete=models.CASCADE, null=True, unique=True
+        Discount,
+        on_delete=models.CASCADE,
+        null=True,
+        unique=True,
+        related_name="views",
     )
 
     def increment(self) -> None:
