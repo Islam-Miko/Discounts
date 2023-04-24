@@ -2,23 +2,17 @@ import os
 from pathlib import Path
 
 import environ
+from redis import ConnectionPool
 
 ENV = environ.Env()
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ENV("SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = ENV.bool("DEBUG", default=False)
-
 ALLOWED_HOSTS = ENV.list("ALLOWED_HOSTS")
-
-
+INTERNAL_IPS = ENV.list("INTERNAL_IPS")
 # Application definition
 
 INSTALLED_APPS = [
@@ -31,6 +25,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_yasg",
     "django_filters",
+    "huey.contrib.djhuey",
+    "debug_toolbar",
     "discounts.apps.DiscappConfig",
 ]
 
@@ -39,6 +35,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -123,3 +120,32 @@ MEDIA_URL = "/media/"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# cache
+REDIS_HOST = ENV("REDIS_HOST")
+CACHE_DB = ENV("CACHE_DB")
+REDIS_PASSWORD = ENV("REDIS_PASSWORD")
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:6379/{CACHE_DB}",
+        "OPTIONS": {"PASSWORD": REDIS_PASSWORD},
+    }
+}
+
+# worker
+WORKER_DB = ENV("WORKER_DB")
+pool = ConnectionPool(
+    host=REDIS_HOST,
+    port=6379,
+    max_connections=10,
+    db=WORKER_DB,
+    password=REDIS_PASSWORD,
+)
+
+HUEY = {
+    "name": "discount-app",
+    "connection": {"connection_pool": pool},
+    "consumer": {"workers": 5, "worker_type": "thread"},
+    "immediate": False,
+}

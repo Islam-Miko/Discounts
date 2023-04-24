@@ -10,6 +10,14 @@ python-versions = ">=3.7"
 tests = ["pytest", "pytest-asyncio", "mypy (>=0.800)"]
 
 [[package]]
+name = "async-timeout"
+version = "4.0.2"
+description = "Timeout context manager for asyncio programs"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "certifi"
 version = "2022.12.7"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -139,6 +147,21 @@ python-versions = ">=3.5"
 Django = ">=2.2"
 
 [[package]]
+name = "django-redis"
+version = "5.2.0"
+description = "Full featured redis cache backend for Django."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+Django = ">=2.2"
+redis = ">=3,<4.0.0 || >4.0.0,<4.0.1 || >4.0.1"
+
+[package.extras]
+hiredis = ["redis[hiredis] (>=3,!=4.0.0,!=4.0.1)"]
+
+[[package]]
 name = "djangorestframework"
 version = "3.12.4"
 description = "Web APIs for Django, made easy."
@@ -194,6 +217,18 @@ python-versions = ">=3.8.1"
 mccabe = ">=0.7.0,<0.8.0"
 pycodestyle = ">=2.10.0,<2.11.0"
 pyflakes = ">=3.0.0,<3.1.0"
+
+[[package]]
+name = "huey"
+version = "2.4.5"
+description = "huey, a little task queue"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+backends = ["redis (>=3.0.0)"]
+redis = ["redis (>=3.0.0)"]
 
 [[package]]
 name = "identify"
@@ -382,6 +417,21 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "redis"
+version = "4.5.4"
+description = "Python client for Redis database and key-value store"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+async-timeout = {version = ">=4.0.2", markers = "python_version <= \"3.11.2\""}
+
+[package.extras]
+hiredis = ["hiredis (>=1.0.0)"]
+ocsp = ["cryptography (>=36.0.1)", "pyopenssl (==20.0.1)", "requests (>=2.26.0)"]
+
+[[package]]
 name = "requests"
 version = "2.28.2"
 description = "Python HTTP for Humans."
@@ -503,10 +553,11 @@ test = ["covdefaults (>=2.3)", "coverage-enable-subprocess (>=1)", "coverage (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "a6d06cd5fc6b43c8cd29e90a3555673982561f77e71dbe245d38a25e28034465"
+content-hash = "58482fe3fb7df3426ace74705199bfe41fa015a8b3436a2fc04fcad93922442b"
 
 [metadata.files]
 asgiref = []
+async-timeout = []
 certifi = []
 cfgv = []
 charset-normalizer = []
@@ -522,10 +573,12 @@ django = []
 django-debug-toolbar = []
 django-environ = []
 django-filter = []
+django-redis = []
 djangorestframework = []
 drf-yasg = []
 filelock = []
 flake8 = []
+huey = []
 identify = []
 idna = []
 inflection = []
@@ -546,6 +599,7 @@ pycodestyle = []
 pyflakes = []
 pytz = []
 pyyaml = []
+redis = []
 requests = []
 "ruamel.yaml" = []
 "ruamel.yaml.clib" = []
