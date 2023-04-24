@@ -2,6 +2,8 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import CharField, F, Value
 from django.db.models.functions import Concat, JSONObject
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import filters, generics, pagination, status, views
 from rest_framework.response import Response
 
@@ -9,6 +11,7 @@ from discounts.models import Category, Client, ClientDiscount, Discount, Review
 
 from . import filters as custom_filters
 from . import service
+from .decorators import increment_views
 from .dtos import couponDto
 from .serializers import (
     CategorySerialzir,
@@ -78,6 +81,11 @@ class DiscountDetailAPIView(generics.RetrieveAPIView):
             )
         )
         return queryset
+
+    @method_decorator(increment_views)
+    @method_decorator(cache_page(60))
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 
 class CreateReviewApi(generics.CreateAPIView):
