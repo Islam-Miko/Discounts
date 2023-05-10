@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -76,10 +77,6 @@ class Discount(BaseModel):
 
     def increment(self):
         WatchedAmount.objects.filter(discount=self).last().increment()
-
-    @property
-    def views(self) -> int:
-        return WatchedAmount.objects.filter(discount=self).get().amount
 
     @property
     def city(self):
@@ -196,15 +193,11 @@ class Number(BaseModel):
         return f"{self.company} {self.phone}"
 
 
-class Client(BaseModel):
-    """Пользователь-клиент"""
-
-    phone = models.CharField("номер телефона", max_length=25, unique=True)
-    passport = models.CharField("ИНН", max_length=25, unique=True, null=True)
+class ClientDetail(BaseModel):
+    client = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
     city = models.ForeignKey(City, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.phone} {self.passport}"
 
 
 class ClientDiscount(BaseModel):
@@ -222,7 +215,9 @@ class ClientDiscount(BaseModel):
         max_length=50,
         default=Statuses.BOOKED,
     )
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    client = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -238,7 +233,9 @@ class DiscountLimit(BaseModel):
     total_limit = models.PositiveSmallIntegerField(
         verbose_name="Количество купонов"
     )
-    discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
+    discount = models.ForeignKey(
+        Discount, on_delete=models.CASCADE, related_name="limits"
+    )
 
     def __str__(self):
         return f" Лимиты {self.discount}"
