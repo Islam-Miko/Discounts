@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "huey.contrib.djhuey",
     "debug_toolbar",
     "discounts.apps.DiscappConfig",
+    "authentication.apps.AuthenticationConfig",
 ]
 
 MIDDLEWARE = [
@@ -76,7 +77,7 @@ DATABASES = {
     }
 }
 
-
+AUTH_USER_MODEL = "authentication.DiscountUser"
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -148,4 +149,15 @@ HUEY = {
     "connection": {"connection_pool": pool},
     "consumer": {"workers": 5, "worker_type": "thread"},
     "immediate": False,
+}
+
+# Rest Framework
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
 }
