@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from . import models, validation_func
+from . import models, validators
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -65,7 +65,7 @@ class PincodeValidationSerialzier(serializers.Serializer):
         min_length=4,
         max_length=4,
         validators=[
-            validation_func.check_is_numeric,
+            validators.check_is_numeric,
         ],
     )
 

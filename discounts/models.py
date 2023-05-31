@@ -203,7 +203,7 @@ class ClientDetail(BaseModel):
 class ClientDiscount(BaseModel):
     """История использований акций(купонов)"""
 
-    class Statuses(models.TextChoices):
+    class STATUSES(models.TextChoices):
         BOOKED = "BOOKED", _("BOOKED")
         WASTED = "WASTED", _("WASTED")
         ACTIVATED = "ACTIVATED", _("ACTIVATED")
@@ -211,9 +211,9 @@ class ClientDiscount(BaseModel):
     add_date = models.DateTimeField(auto_now_add=True)
     edit_date = models.DateTimeField(auto_now=True)
     status = models.CharField(
-        choices=Statuses.choices,
+        choices=STATUSES.choices,
         max_length=50,
-        default=Statuses.BOOKED,
+        default=STATUSES.BOOKED,
     )
     client = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE
