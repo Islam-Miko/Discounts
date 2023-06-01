@@ -18,6 +18,21 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "attrs"
+version = "23.1.0"
+description = "Classes Without Boilerplate"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+cov = ["attrs", "coverage[toml] (>=5.3)"]
+dev = ["attrs", "pre-commit"]
+docs = ["furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphinxcontrib-towncrier", "towncrier", "zope-interface"]
+tests = ["attrs", "zope-interface"]
+tests-no-zope = ["cloudpickle", "hypothesis", "mypy (>=1.1.1)", "pympler", "pytest-mypy-plugins", "pytest-xdist", "pytest (>=4.3.0)"]
+
+[[package]]
 name = "certifi"
 version = "2022.12.7"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -194,25 +209,24 @@ python-jose = ["python-jose (==3.3.0)"]
 test = ["cryptography", "pytest-cov", "pytest-django", "pytest-xdist", "pytest", "tox"]
 
 [[package]]
-name = "drf-yasg"
-version = "1.20.0"
-description = "Automated generation of real Swagger/OpenAPI 2.0 schemas from Django Rest Framework code."
+name = "drf-spectacular"
+version = "0.26.2"
+description = "Sane and flexible OpenAPI 3 schema generation for Django REST framework"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-coreapi = ">=2.3.3"
-coreschema = ">=0.0.4"
-Django = ">=2.2.16"
+Django = ">=2.2"
 djangorestframework = ">=3.10.3"
 inflection = ">=0.3.1"
-packaging = "*"
-"ruamel.yaml" = ">=0.15.34"
-uritemplate = ">=3.0.0"
+jsonschema = ">=2.6.0"
+PyYAML = ">=5.1"
+uritemplate = ">=2.0.0"
 
 [package.extras]
-validation = ["swagger-spec-validator (>=2.1.0)"]
+offline = ["drf-spectacular-sidecar"]
+sidecar = ["drf-spectacular-sidecar"]
 
 [[package]]
 name = "filelock"
@@ -313,6 +327,22 @@ MarkupSafe = ">=2.0"
 
 [package.extras]
 i18n = ["Babel (>=2.7)"]
+
+[[package]]
+name = "jsonschema"
+version = "4.17.3"
+description = "An implementation of JSON Schema validation for Python"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+attrs = ">=17.4.0"
+pyrsistent = ">=0.14.0,<0.17.0 || >0.17.0,<0.17.1 || >0.17.1,<0.17.2 || >0.17.2"
+
+[package.extras]
+format = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3987", "uri-template", "webcolors (>=1.11)"]
+format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "uri-template", "webcolors (>=1.11)"]
 
 [[package]]
 name = "markupsafe"
@@ -436,6 +466,14 @@ docs = ["sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface"]
 tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
+name = "pyrsistent"
+version = "0.19.3"
+description = "Persistent/Functional/Immutable data structures"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "pytz"
 version = "2023.3"
 description = "World timezone definitions, modern and historical"
@@ -447,7 +485,7 @@ python-versions = "*"
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -588,11 +626,12 @@ test = ["covdefaults (>=2.3)", "coverage-enable-subprocess (>=1)", "coverage (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "cc4025c1844e193a5ea984a3668461588f76b47a93d0c3c0df220ffa06947ad5"
+content-hash = "aa63d22be68c6fa931b4d72478196f3787b21a50978cc871eeb8dca94280b378"
 
 [metadata.files]
 asgiref = []
 async-timeout = []
+attrs = []
 certifi = []
 cfgv = []
 charset-normalizer = []
@@ -611,7 +650,7 @@ django-filter = []
 django-redis = []
 djangorestframework = []
 djangorestframework-simplejwt = []
-drf-yasg = []
+drf-spectacular = []
 filelock = []
 flake8 = []
 huey = []
@@ -621,6 +660,7 @@ inflection = []
 isort = []
 itypes = []
 jinja2 = []
+jsonschema = []
 markupsafe = []
 mccabe = []
 mypy-extensions = []
@@ -634,6 +674,7 @@ psycopg2-binary = []
 pycodestyle = []
 pyflakes = []
 pyjwt = []
+pyrsistent = []
 pytz = []
 pyyaml = []
 redis = []
