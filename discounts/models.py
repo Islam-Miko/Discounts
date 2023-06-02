@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save
@@ -201,13 +203,14 @@ class ClientDetail(BaseModel):
 
 
 class ClientDiscount(BaseModel):
-    """История использований акций(купонов)"""
+    """Купоны"""
 
     class STATUSES(models.TextChoices):
         BOOKED = "BOOKED", _("BOOKED")
         WASTED = "WASTED", _("WASTED")
         ACTIVATED = "ACTIVATED", _("ACTIVATED")
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     add_date = models.DateTimeField(auto_now_add=True)
     edit_date = models.DateTimeField(auto_now=True)
     status = models.CharField(
