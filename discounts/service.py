@@ -5,7 +5,6 @@ from django.utils import timezone
 
 from authentication.models import DiscountUser
 
-from . import models
 from .exceptions import (
     AlreadyHaveCoupon,
     DayLimitIsReached,
@@ -44,19 +43,6 @@ def check_conditions(discount_id: int, client: DiscountUser) -> None:
         raise DiscountIsNotActive()
     elif day_use_of_discount >= discount_limit.day_limit:
         raise DayLimitIsReached()
-
-
-def couponScheduler() -> None:
-    """Для бэкграунд чека - прошло ли время действия купона"""
-    for_checking_querysets = models.ClientDiscount.objects.filter(
-        status="BOOKED"
-    ).all()
-    hours_48 = datetime.timedelta(minutes=1)
-    today = datetime.datetime.today()
-    for check_obj in for_checking_querysets:
-        if str(check_obj.add_date + hours_48) <= str(today):
-            check_obj.status = models.ClientDiscount.STATUS[1][0]
-            check_obj.save()
 
 
 def get_coupon(coupon_id: str) -> ClientDiscount:
