@@ -1,6 +1,11 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from . import views
+
+router = DefaultRouter()
+router.register(r"coupons", views.CouponAPIView, basename="coupons")
+
 
 urlpatterns = [
     path(
@@ -17,8 +22,5 @@ urlpatterns = [
     # написания отзыва к акции
     path("discounts/<int:pk>/coupon", views.CouponCreateAPIView.as_view()),
     # получение купона
-    path("coupon/activate", views.CouponActivate.as_view()),
-    # активация купона
     path("categories", views.CategoryView.as_view()),
-    # получение купона
-]
+] + router.urls

@@ -1,12 +1,22 @@
+import datetime
+
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import CharField, F, Value
+from django.db.models import (
+    CharField,
+    DateTimeField,
+    ExpressionWrapper,
+    F,
+    Value,
+)
 from django.db.models.functions import Concat, JSONObject
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from drf_spectacular.utils import extend_schema
-from rest_framework import filters, generics, pagination, status, views
+from rest_framework import filters, generics, pagination, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 
 from discounts.models import Category, ClientDiscount, Discount, Review
@@ -20,8 +30,8 @@ from .serializers import (
     CouponGetSerializer,
     DiscountFullInformationSerializer,
     DiscountShortInformationSerializer,
-    PincodeValidationSerialzier,
     ReviewSerializer,
+    SuccessfulResponseSerializer,
 )
 
 Client = get_user_model()
@@ -127,46 +137,33 @@ class CouponCreateAPIView(generics.CreateAPIView):
         )
 
 
-class CouponActivate(views.APIView):
-    """Для активации купона"""
-
-    def post(self, request):
-        try:
-            discount = service.get_object_by_id(
-                Discount, self.request.query_params.get("discount")
-            )
-            client = service.get_object_by_id(
-                Client, self.request.query_params.get("client")
-            )
-        except Client.DoesNotExist:
-            return Response(
-                {"Message": "Client Not Found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except Discount.DoesNotExist:
-            return Response(
-                {"Message": "Discount Not Found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        pincode = PincodeValidationSerialzier(data=request.data)
-        pincode.is_valid(raise_exception=True)
-
-        instance_to_status_change = service.find_last_BOOKED_object_of_client(
-            discount, client
-        )
-        if instance_to_status_change:
-            if discount.pincode == pincode.data.get("pincode"):
-                instance_to_status_change.status = ClientDiscount.STATUS[2][0]
-                instance_to_status_change.save()
-                return Response({"message": "Successful", "ok": True})
-            return Response(
-                {"message": "invalid pincode", "ok": False},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        return Response({"No coupon Im sorry"})
-
-
 class CategoryView(generics.ListAPIView):
     queryset = Category.objects.order_by("order_num").all()
     serializer_class = CategorySerialzir
+
+
+class CouponAPIView(
+    ListModelMixin, RetrieveModelMixin, viewsets.GenericViewSet
+):
+    serializer_class = CouponGetSerializer
+
+    def get_queryset(self):
+        return ClientDiscount.objects.annotate(
+            company=F("discount__company__name"),
+            image=F("discount__company__image"),
+            description=F("discount__description__description"),
+            percentage=F("discount__percentage"),
+            valid_time=ExpressionWrapper(
+                F("add_date") + datetime.timedelta(days=2),
+                output_field=DateTimeField(),
+            ),
+        )
+
+    @extend_schema(
+        request=None,
+        responses={status.HTTP_200_OK: SuccessfulResponseSerializer},
+    )
+    @action(detail=True, url_path=r"activate", methods=["patch"])
+    def activate_coupon(self, request, pk: str):
+        service.update_coupon(pk)
+        return Response({"message": "Ok"})

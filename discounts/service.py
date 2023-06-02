@@ -46,20 +46,6 @@ def check_conditions(discount_id: int, client: DiscountUser) -> None:
         raise DayLimitIsReached()
 
 
-def get_object_by_id(queryset, id: int) -> object:
-    """Селектор для получения экземпляра по id из заданной модели"""
-    return queryset.objects.filter(id=id).get()
-
-
-def find_last_BOOKED_object_of_client(
-    discount: object, client: object
-) -> object:
-    """При активации акции, меняем стаутс последней записи - возвращает посл.запись"""
-    return models.ClientDiscount.objects.filter(
-        discount=discount, client=client, status="BOOKED"
-    ).last()
-
-
 def couponScheduler() -> None:
     """Для бэкграунд чека - прошло ли время действия купона"""
     for_checking_querysets = models.ClientDiscount.objects.filter(
@@ -73,7 +59,7 @@ def couponScheduler() -> None:
             check_obj.save()
 
 
-def get_coupon(coupon_id: int) -> ClientDiscount:
+def get_coupon(coupon_id: str) -> ClientDiscount:
     return ClientDiscount.objects.annotate(
         company=F("discount__company__name"),
         image=F("discount__company__image"),
@@ -84,3 +70,9 @@ def get_coupon(coupon_id: int) -> ClientDiscount:
             output_field=DateTimeField(),
         ),
     ).get(id=coupon_id)
+
+
+def update_coupon(coupon_id: str) -> None:
+    ClientDiscount.objects.filter(id=coupon_id).update(
+        status=ClientDiscount.STATUSES.ACTIVATED
+    )

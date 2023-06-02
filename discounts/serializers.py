@@ -52,7 +52,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CouponGetSerializer(serializers.Serializer):
-
+    id = serializers.UUIDField(read_only=True)
     titel = serializers.CharField(default="СКИДОЧНЫЙ КУПОН", required=False)
     company = serializers.CharField()
     percentage = serializers.IntegerField()
@@ -123,7 +123,7 @@ class DiscountFullInformationSerializer(DiscountShortInformationSerializer):
 
 
 class CouponCreateSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(read_only=True)
+    id = serializers.UUIDField(read_only=True)
     discount = serializers.PrimaryKeyRelatedField(
         queryset=models.Discount.objects.all()
     )
@@ -131,3 +131,7 @@ class CouponCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ClientDiscount
         fields = ("client", "discount", "id")
+
+
+class SuccessfulResponseSerializer(serializers.Serializer):
+    message = serializers.CharField(default="Ok")
