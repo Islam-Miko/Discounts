@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from . import models, validators
@@ -50,14 +51,17 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CouponSerializer(serializers.Serializer):
+class CouponGetSerializer(serializers.Serializer):
 
     titel = serializers.CharField(default="СКИДОЧНЫЙ КУПОН", required=False)
     company = serializers.CharField()
     percentage = serializers.IntegerField()
     description = serializers.CharField()
-    time_limit = serializers.CharField()
-    logo = serializers.SlugField()
+    valid_time = serializers.SerializerMethodField()
+    image = serializers.SlugField()
+
+    def get_valid_time(self, obj) -> str:
+        return f"Купон действует до {timezone.localtime(obj.valid_time): %d.%m.%Y %H:%M}"
 
 
 class PincodeValidationSerialzier(serializers.Serializer):
@@ -116,3 +120,14 @@ class DiscountFullInformationSerializer(DiscountShortInformationSerializer):
     company_phones = serializers.ListField(child=serializers.CharField())
     addres = serializers.CharField()
     discount_city = serializers.CharField()
+
+
+class CouponCreateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    discount = serializers.PrimaryKeyRelatedField(
+        queryset=models.Discount.objects.all()
+    )
+
+    class Meta:
+        model = models.ClientDiscount
+        fields = ("client", "discount", "id")

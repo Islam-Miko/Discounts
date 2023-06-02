@@ -1,26 +1,30 @@
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import CharField, F, Value
 from django.db.models.functions import Concat, JSONObject
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from drf_spectacular.utils import extend_schema
 from rest_framework import filters, generics, pagination, status, views
 from rest_framework.response import Response
 
-from discounts.models import Category, Client, ClientDiscount, Discount, Review
+from discounts.models import Category, ClientDiscount, Discount, Review
 
 from . import filters as custom_filters
 from . import service
 from .decorators import increment_views
-from .dtos import couponDto
 from .serializers import (
     CategorySerialzir,
-    CouponSerializer,
+    CouponCreateSerializer,
+    CouponGetSerializer,
     DiscountFullInformationSerializer,
     DiscountShortInformationSerializer,
     PincodeValidationSerialzier,
     ReviewSerializer,
 )
+
+Client = get_user_model()
 
 
 class DiscountListAPIView(generics.ListAPIView):
@@ -95,34 +99,32 @@ class CreateReviewApi(generics.CreateAPIView):
     serializer_class = ReviewSerializer
 
 
-class CouponView(views.APIView):
-    """Для получения купона"""
+class CouponCreateAPIView(generics.CreateAPIView):
+    serializer_class = CouponCreateSerializer
 
-    def post(self, request):
-        try:
-            discount = service.get_object_by_id(
-                Discount, self.request.query_params.get("discount")
-            )
-            client = service.get_object_by_id(
-                Client, self.request.query_params.get("client")
-            )
-        except Client.DoesNotExist:
-            return Response(
-                {"Message": "Client Not Found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except Discount.DoesNotExist:
-            return Response(
-                {"Message": "Discount Not Found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+    @extend_schema(
+        request=None,
+        description="Endpoint to get coupon. No request body required",
+    )
+    def post(self, request, pk: int, *args, **kwargs):
+        service.check_conditions(pk, request.user)
+        return super().post(request, *args, **kwargs)
 
-        limits_are_reached, message = service.coupon_creation(discount, client)
-        if limits_are_reached:
-            return Response(f"{message}")
-        instance = couponDto(discount, client)
-        serializer = CouponSerializer(instance)
-        return Response(serializer.data)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(
+            data=dict(
+                discount=self.kwargs.get(self.lookup_field),
+                client=request.user.id,
+            ),
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        coupon = service.get_coupon(serializer.data.get("id"))
+        serializer = CouponGetSerializer(coupon)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 class CouponActivate(views.APIView):

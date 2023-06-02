@@ -221,7 +221,7 @@ class ClientDiscount(BaseModel):
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.client.phone} - {self.status} {self.edit_date}"
+        return f"{self.client.phone_number} - {self.status} {self.edit_date}"
 
 
 class DiscountLimit(BaseModel):
