@@ -1,11 +1,11 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from . import models, validators
+from . import models
 
 
 class AddressSerializer(serializers.ModelSerializer):
-    """Для полной информации"""
+    """AddressSerializer"""
 
     city = serializers.SlugRelatedField(
         slug_field="city", queryset=models.City.objects.all()
@@ -17,7 +17,7 @@ class AddressSerializer(serializers.ModelSerializer):
 
 
 class SocialSerializer(serializers.ModelSerializer):
-    """Для полной информации"""
+    """SocialSerializer"""
 
     class Meta:
         model = models.SocialNet
@@ -25,7 +25,7 @@ class SocialSerializer(serializers.ModelSerializer):
 
 
 class PhoneSerializer(serializers.ModelSerializer):
-    """Для полной информации"""
+    """PhoneSerializer"""
 
     class Meta:
         model = models.Number
@@ -33,7 +33,7 @@ class PhoneSerializer(serializers.ModelSerializer):
 
 
 class CompanySerializer2(serializers.ModelSerializer):
-    """Для краткой информацииж об компании"""
+    """CompanySerializer2"""
 
     class Meta:
         model = models.Company
@@ -44,7 +44,7 @@ class CompanySerializer2(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """Для краткой информацииж об компании"""
+    """ReviewSerializer"""
 
     class Meta:
         model = models.Review
@@ -52,8 +52,13 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CouponGetSerializer(serializers.Serializer):
+    """
+    CouponGetSerializer.
+    Used in coupon creation endpoint
+    """
+
     id = serializers.UUIDField(read_only=True)
-    titel = serializers.CharField(default="СКИДОЧНЫЙ КУПОН", required=False)
+    titel = serializers.CharField(default="DISCOUNT COUPON", required=False)
     company = serializers.CharField()
     percentage = serializers.IntegerField()
     description = serializers.CharField()
@@ -61,27 +66,10 @@ class CouponGetSerializer(serializers.Serializer):
     image = serializers.SlugField()
 
     def get_valid_time(self, obj) -> str:
-        return f"Купон действует до {timezone.localtime(obj.valid_time): %d.%m.%Y %H:%M}"
-
-
-class PincodeValidationSerialzier(serializers.Serializer):
-    pincode = serializers.CharField(
-        min_length=4,
-        max_length=4,
-        validators=[
-            validators.check_is_numeric,
-        ],
-    )
-
-
-class CategorySerialzir(serializers.ModelSerializer):
-    class Meta:
-        model = models.Category
-        fields = "__all__"
+        return f"Coupon is valid until {timezone.localtime(obj.valid_time): %d.%m.%Y %H:%M}"
 
 
 class DiscountSerializer(serializers.ModelSerializer):
-    pincode = serializers.CharField(write_only=True)
     order_num = serializers.IntegerField(write_only=True)
 
     class Meta:
@@ -90,29 +78,37 @@ class DiscountSerializer(serializers.ModelSerializer):
 
 
 class DiscountShortInformationSerializer(DiscountSerializer):
+    """
+    DiscountShortInformationSerializer.
+    Used in list-view endpoint to output short information about Discount
+    """
+
     category = serializers.CharField(source="category.type")
     company = serializers.CharField(source="company.name")
     instruction = serializers.CharField(source="instruction.text")
 
 
 class CompanyFullInformationSerializer(CompanySerializer2):
+    """CompanyFullInformationSerializer"""
+
     class Meta(CompanySerializer2.Meta):
         fields = "__all__"
 
 
-class InstuctionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Instruction
-        fields = "__all__"
-
-
 class DescriptionSerializer(serializers.ModelSerializer):
+    """DescriptionSerializer"""
+
     class Meta:
         model = models.Description
         fields = "__all__"
 
 
 class DiscountFullInformationSerializer(DiscountShortInformationSerializer):
+    """
+    DiscountFullInformationSerializer.
+    Used in detail-view endpoint to output full information about Discount
+    """
+
     views_count = serializers.IntegerField()
     company = CompanyFullInformationSerializer()
     description = DescriptionSerializer()
@@ -123,6 +119,11 @@ class DiscountFullInformationSerializer(DiscountShortInformationSerializer):
 
 
 class CouponCreateSerializer(serializers.ModelSerializer):
+    """
+    CouponCreateSerializer.
+    Used in to create coupon (ClientDiscount) for client.
+    """
+
     id = serializers.UUIDField(read_only=True)
     discount = serializers.PrimaryKeyRelatedField(
         queryset=models.Discount.objects.all()
@@ -134,4 +135,7 @@ class CouponCreateSerializer(serializers.ModelSerializer):
 
 
 class SuccessfulResponseSerializer(serializers.Serializer):
+    """SuccessfulResponseSerializer.
+    Used to show response body schema in swagger"""
+
     message = serializers.CharField(default="Ok")
