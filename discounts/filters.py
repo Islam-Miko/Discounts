@@ -26,6 +26,10 @@ class PriorityOrderFilter(filters.BaseFilterBackend):
         return getattr(view, "priority_field", None)
 
     def filter_queryset(self, request, queryset, view):
+        """
+        Filters queryset by city id, desired city reordered to first part of
+        queryset
+        """
         priority_term = self.get_priority_term(request)
         priority_field = self.get_priority_field(view, request)
         if not priority_term or not priority_field:

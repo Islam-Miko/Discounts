@@ -1,4 +1,5 @@
 from functools import wraps
+from typing import Callable
 
 from django.http import HttpRequest
 
@@ -6,7 +7,7 @@ from .tasks import increment_count
 from .utils import get_id_from_path
 
 
-def increment_views(view_func):
+def increment_views(view_func: Callable):
     """
     Decorator to start discounts view incrementing
     task.

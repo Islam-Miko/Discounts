@@ -165,5 +165,5 @@ class CouponAPIView(
     )
     @action(detail=True, url_path=r"activate", methods=["patch"])
     def activate_coupon(self, request, pk: str):
-        service.update_coupon(pk)
+        service.activate_coupon(pk)
         return Response({"message": "Ok"})

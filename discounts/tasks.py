@@ -23,7 +23,10 @@ def increment_count(discount_id: int) -> None:
 
 @db_periodic_task(crontab())
 def couponScheduler() -> None:
-    """Для бэкграунд чека - прошло ли время действия купона"""
+    """
+    Huey db_task, checks for wasted ClientDiscounts (Coupons) and if there are some
+    updates status from 'BOOKED' to 'WASTED'
+    """
     ClientDiscount.objects.filter(
         add_date__lt=timezone.now() - timedelta(days=2),
         status=ClientDiscount.STATUSES.BOOKED,
