@@ -65,7 +65,6 @@ class Discount(BaseModel):
     percentage = models.PositiveSmallIntegerField("Процент скидки")
     start_date = models.DateTimeField("Начало акции")
     end_date = models.DateTimeField("Окончание акции")
-    pincode = models.CharField(max_length=20)
     active = models.BooleanField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     company = models.ForeignKey("Company", on_delete=models.CASCADE)
@@ -76,17 +75,6 @@ class Discount(BaseModel):
 
     def __str__(self):
         return f"{self.percentage}%  {self.company.name} {self.city}"
-
-    def increment(self):
-        WatchedAmount.objects.filter(discount=self).last().increment()
-
-    @property
-    def city(self):
-        return self.company.city
-
-    @property
-    def city_order(self) -> int:
-        return self.company.city.order_num
 
 
 class WatchedAmount(BaseModel):
@@ -102,10 +90,6 @@ class WatchedAmount(BaseModel):
         unique=True,
         related_name="views",
     )
-
-    def increment(self) -> None:
-        self.amount += 1
-        self.save()
 
     def __str__(self):
         return f"{self.amount} {self.discount}"
@@ -128,10 +112,6 @@ class Company(BaseModel):
 
     def __str__(self):
         return f"{self.name}"
-
-    @property
-    def city(self):
-        return Address.objects.get(company=self).city
 
 
 class SocialNet(BaseModel):
