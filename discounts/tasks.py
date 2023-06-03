@@ -1,7 +1,11 @@
-from django.db.models import F
-from huey.contrib.djhuey import db_task
+from datetime import timedelta
 
-from .models import WatchedAmount
+from django.db.models import F
+from django.utils import timezone
+from huey import crontab
+from huey.contrib.djhuey import db_periodic_task, db_task
+
+from .models import ClientDiscount, WatchedAmount
 
 
 @db_task()
@@ -15,3 +19,12 @@ def increment_count(discount_id: int) -> None:
     WatchedAmount.objects.filter(discount__id=discount_id).update(
         amount=F("amount") + 1
     )
+
+
+@db_periodic_task(crontab())
+def couponScheduler() -> None:
+    """Для бэкграунд чека - прошло ли время действия купона"""
+    ClientDiscount.objects.filter(
+        add_date__lt=timezone.now() - timedelta(days=2),
+        status=ClientDiscount.STATUSES.BOOKED,
+    ).update(status=ClientDiscount.STATUSES.WASTED)

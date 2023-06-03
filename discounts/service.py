@@ -1,88 +1,64 @@
 import datetime
 
-from . import dtos, models
+from django.db.models import DateTimeField, ExpressionWrapper, F
+from django.utils import timezone
+
+from authentication.models import DiscountUser
+
+from .exceptions import (
+    AlreadyHaveCoupon,
+    DayLimitIsReached,
+    DiscountIsNotActive,
+)
+from .models import ClientDiscount, Discount, DiscountLimit
 
 
-def coupon_creation(discount: object, client: object) -> tuple[bool, str]:
-    today = datetime.datetime.today()
-    day_48_hours_ago = today - datetime.timedelta(days=2)
-    # day_48_hours_ago нужен, чтобы найти созданный в течение последних 2 суток объект со
-    # статусом BOOKED
-
-    day_use_of_discount = models.ClientDiscount.objects.filter(
-        add_date__day=today.day, discount=discount
-    ).count()
-    # Запрос возвращает количество полученных(или использованных) сегодня купонов у заданной акции
-    total_uses_of_discount = models.ClientDiscount.objects.filter(
-        status="ACTIVATED", discount=discount
-    ).count()
-    # Запрос возвращает сколько раз акция была применена клиентом
-    day_limit = (
-        models.DiscountLimit.objects.filter(discount=discount).get().day_limit
+def check_conditions(discount_id: int, client: DiscountUser) -> None:
+    today = timezone.now()
+    discount_limit: DiscountLimit = DiscountLimit.objects.get(
+        discount__id=discount_id
     )
-    total_limit = (
-        models.DiscountLimit.objects.filter(discount=discount)
-        .get()
-        .total_limit
+
+    if ClientDiscount.objects.filter(
+        discount__id=discount_id,
+        client=client,
+        status=ClientDiscount.STATUSES.BOOKED,
+    ).exists():
+        raise AlreadyHaveCoupon()
+
+    client_discount_base = ClientDiscount.objects.filter(
+        discount__id=discount_id
     )
-    # Запросы возвращают лимиты заданные для акции
 
-    clients_last_coupon = models.ClientDiscount.objects.filter(
-        discount=discount, client=client
-    ).last()
-    # Запрос возвращает последний купон клиента на заданную акцию
-    if clients_last_coupon:
-        if clients_last_coupon.status == "BOOKED":
-            return False, "_"
-    # Если у клиента есть купон и он ее еще не воспользовался, то на экране выйдет его купон
+    day_use_of_discount = client_discount_base.filter(
+        add_date__date=today.date()
+    ).count()
 
-    if total_uses_of_discount >= total_limit:
-        discount.active = False
-        discount.save()
-        return True, "No more Coupons."
-    elif day_use_of_discount >= day_limit:
-        return True, "No more Coupons for today, Im sorry!"
-    # Если условия ограничений количества использований акции превышены,
-    # то нельзя получить новый купон.
+    total_uses_of_discount = client_discount_base.filter(
+        status=ClientDiscount.STATUSES.ACTIVATED
+    ).count()
 
-    models.ClientDiscount.objects.filter(
-        add_date__gte=day_48_hours_ago
-    ).get_or_create(discount=discount, client=client, status="BOOKED")
-    # При первичном запросе создает запись в модели,
-    #     ищет по дате за последнии 2 дня, так как купон дается на 2 дня
-    return False, " "
+    if total_uses_of_discount >= discount_limit.total_limit:
+        Discount.objects.filter(id=discount_id).update(active=False)
+        raise DiscountIsNotActive()
+    elif day_use_of_discount >= discount_limit.day_limit:
+        raise DayLimitIsReached()
 
 
-def make_list_dto(queryset) -> list[object]:
-    """для вывода списка объектов через дто"""
-    a_list = []
-    for query in queryset:
-        a_list.append(dtos.discountDtoShort(query))
-    return a_list
+def get_coupon(coupon_id: str) -> ClientDiscount:
+    return ClientDiscount.objects.annotate(
+        company=F("discount__company__name"),
+        image=F("discount__company__image"),
+        description=F("discount__description__description"),
+        percentage=F("discount__percentage"),
+        valid_time=ExpressionWrapper(
+            F("add_date") + datetime.timedelta(days=2),
+            output_field=DateTimeField(),
+        ),
+    ).get(id=coupon_id)
 
 
-def get_object_by_id(queryset, id: int) -> object:
-    """Селектор для получения экземпляра по id из заданной модели"""
-    return queryset.objects.filter(id=id).get()
-
-
-def find_last_BOOKED_object_of_client(
-    discount: object, client: object
-) -> object:
-    """При активации акции, меняем стаутс последней записи - возвращает посл.запись"""
-    return models.ClientDiscount.objects.filter(
-        discount=discount, client=client, status="BOOKED"
-    ).last()
-
-
-def couponScheduler() -> None:
-    """Для бэкграунд чека - прошло ли время действия купона"""
-    for_checking_querysets = models.ClientDiscount.objects.filter(
-        status="BOOKED"
-    ).all()
-    hours_48 = datetime.timedelta(minutes=1)
-    today = datetime.datetime.today()
-    for check_obj in for_checking_querysets:
-        if str(check_obj.add_date + hours_48) <= str(today):
-            check_obj.status = models.ClientDiscount.STATUS[1][0]
-            check_obj.save()
+def update_coupon(coupon_id: str) -> None:
+    ClientDiscount.objects.filter(id=coupon_id).update(
+        status=ClientDiscount.STATUSES.ACTIVATED
+    )

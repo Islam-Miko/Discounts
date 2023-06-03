@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save
@@ -201,19 +203,20 @@ class ClientDetail(BaseModel):
 
 
 class ClientDiscount(BaseModel):
-    """История использований акций(купонов)"""
+    """Купоны"""
 
-    class Statuses(models.TextChoices):
+    class STATUSES(models.TextChoices):
         BOOKED = "BOOKED", _("BOOKED")
         WASTED = "WASTED", _("WASTED")
         ACTIVATED = "ACTIVATED", _("ACTIVATED")
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     add_date = models.DateTimeField(auto_now_add=True)
     edit_date = models.DateTimeField(auto_now=True)
     status = models.CharField(
-        choices=Statuses.choices,
+        choices=STATUSES.choices,
         max_length=50,
-        default=Statuses.BOOKED,
+        default=STATUSES.BOOKED,
     )
     client = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE
@@ -221,7 +224,7 @@ class ClientDiscount(BaseModel):
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.client.phone} - {self.status} {self.edit_date}"
+        return f"{self.client.phone_number} - {self.status} {self.edit_date}"
 
 
 class DiscountLimit(BaseModel):

@@ -1,18 +1,26 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from . import views
 
+router = DefaultRouter()
+router.register(r"coupons", views.CouponAPIView, basename="coupons")
+
+
 urlpatterns = [
-    path("discounts/<int:pk>", views.DiscountDetailAPIView.as_view()),
+    path(
+        "discounts/<int:pk>",
+        views.DiscountDetailAPIView.as_view(),
+        name="discount-detail",
+    ),
     # Детальный просмотр акции
-    path("discounts", views.DiscountListAPIView.as_view()),
+    path(
+        "discounts", views.DiscountListAPIView.as_view(), name="discount-list"
+    ),
     #  просмотр краткой информации об акциях
     path("review", views.CreateReviewApi.as_view()),
     # написания отзыва к акции
-    path("coupon", views.CouponView.as_view()),
+    path("discounts/<int:pk>/coupon", views.CouponCreateAPIView.as_view()),
     # получение купона
-    path("coupon/activate", views.CouponActivate.as_view()),
-    # активация купона
     path("categories", views.CategoryView.as_view()),
-    # получение купона
-]
+] + router.urls

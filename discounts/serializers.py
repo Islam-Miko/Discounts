@@ -1,6 +1,7 @@
+from django.utils import timezone
 from rest_framework import serializers
 
-from . import models, validation_func
+from . import models, validators
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -50,14 +51,17 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CouponSerializer(serializers.Serializer):
-
+class CouponGetSerializer(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True)
     titel = serializers.CharField(default="СКИДОЧНЫЙ КУПОН", required=False)
     company = serializers.CharField()
     percentage = serializers.IntegerField()
     description = serializers.CharField()
-    time_limit = serializers.CharField()
-    logo = serializers.SlugField()
+    valid_time = serializers.SerializerMethodField()
+    image = serializers.SlugField()
+
+    def get_valid_time(self, obj) -> str:
+        return f"Купон действует до {timezone.localtime(obj.valid_time): %d.%m.%Y %H:%M}"
 
 
 class PincodeValidationSerialzier(serializers.Serializer):
@@ -65,7 +69,7 @@ class PincodeValidationSerialzier(serializers.Serializer):
         min_length=4,
         max_length=4,
         validators=[
-            validation_func.check_is_numeric,
+            validators.check_is_numeric,
         ],
     )
 
@@ -116,3 +120,18 @@ class DiscountFullInformationSerializer(DiscountShortInformationSerializer):
     company_phones = serializers.ListField(child=serializers.CharField())
     addres = serializers.CharField()
     discount_city = serializers.CharField()
+
+
+class CouponCreateSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    discount = serializers.PrimaryKeyRelatedField(
+        queryset=models.Discount.objects.all()
+    )
+
+    class Meta:
+        model = models.ClientDiscount
+        fields = ("client", "discount", "id")
+
+
+class SuccessfulResponseSerializer(serializers.Serializer):
+    message = serializers.CharField(default="Ok")
