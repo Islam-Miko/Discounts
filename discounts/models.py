@@ -21,19 +21,17 @@ class BaseModel(models.Model):
 
 
 class Category(BaseModel):
-    """Категория акций"""
 
-    type = models.CharField("Категория", max_length=100)
-    order_num = models.IntegerField("Приоритет", default=0)
+    type = models.CharField("Category", max_length=100)
+    order_num = models.IntegerField("Priority", default=0)
 
     def __str__(self):
         return f"{self.type}"
 
 
 class City(BaseModel):
-    """Города"""
 
-    city = models.CharField("Город", max_length=100, unique=True)
+    city = models.CharField("City", max_length=100, unique=True)
     order_num = models.PositiveSmallIntegerField(default=1)
 
     def __str__(self):
@@ -41,13 +39,12 @@ class City(BaseModel):
 
 
 class Description(BaseModel):
-    """Описание акции с условиями"""
 
-    description = models.TextField(verbose_name="Описание")
-    condition = models.TextField(verbose_name="Условине")
-    days = models.TextField(verbose_name="Дни использования")
+    description = models.TextField(verbose_name="Description")
+    condition = models.TextField(verbose_name="Condition")
+    days = models.TextField(verbose_name="Available days")
     active = models.BooleanField()
-    work_hours = models.CharField("Время работы", max_length=255, null=True)
+    work_hours = models.CharField("Work hours", max_length=255, null=True)
     discount = models.OneToOneField(
         "Discount",
         on_delete=models.CASCADE,
@@ -56,16 +53,14 @@ class Description(BaseModel):
     )
 
     def __str__(self):
-        return f"Описание {self.pk}"
+        return f"Description {self.pk}"
 
 
 class Discount(BaseModel):
-    """Акция"""
 
-    percentage = models.PositiveSmallIntegerField("Процент скидки")
-    start_date = models.DateTimeField("Начало акции")
-    end_date = models.DateTimeField("Окончание акции")
-    pincode = models.CharField(max_length=20)
+    percentage = models.PositiveSmallIntegerField("Discount percentage")
+    start_date = models.DateTimeField("Start date")
+    end_date = models.DateTimeField("End date")
     active = models.BooleanField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     company = models.ForeignKey("Company", on_delete=models.CASCADE)
@@ -77,24 +72,9 @@ class Discount(BaseModel):
     def __str__(self):
         return f"{self.percentage}%  {self.company.name} {self.city}"
 
-    def increment(self):
-        WatchedAmount.objects.filter(discount=self).last().increment()
-
-    @property
-    def city(self):
-        return self.company.city
-
-    @property
-    def city_order(self) -> int:
-        return self.company.city.order_num
-
 
 class WatchedAmount(BaseModel):
-    """Счетчик просмотров акций в приложении"""
-
-    amount = models.PositiveIntegerField(
-        verbose_name="Количество просмотров", default=0
-    )
+    amount = models.PositiveIntegerField(verbose_name="Views", default=0)
     discount = models.OneToOneField(
         Discount,
         on_delete=models.CASCADE,
@@ -103,55 +83,42 @@ class WatchedAmount(BaseModel):
         related_name="views",
     )
 
-    def increment(self) -> None:
-        self.amount += 1
-        self.save()
-
     def __str__(self):
         return f"{self.amount} {self.discount}"
 
-    @receiver(post_save, sender=Discount)  # add this
+    @receiver(post_save, sender=Discount)
     def create_watched_disc(sender, instance, created, **kwargs) -> None:
         if created:
             WatchedAmount.objects.create(discount=instance)
 
 
 class Company(BaseModel):
-    """Филиалы главной компании"""
 
     name = models.CharField(
-        max_length=255, verbose_name="Компания", unique=True
+        max_length=255, verbose_name="Company name", unique=True
     )
-    image = models.ImageField(
-        upload_to="media/company", verbose_name="Картинка"
-    )
+    image = models.ImageField(upload_to="media/company", verbose_name="Image")
 
     def __str__(self):
         return f"{self.name}"
 
-    @property
-    def city(self):
-        return Address.objects.get(company=self).city
-
 
 class SocialNet(BaseModel):
-    """Социальные сети компании"""
-
     class SocialNetTypes(models.TextChoices):
-        INSTAGRAM = "Instagram"
-        FB = "Facebook"
+        INSTAGRAM = "INSTAGRAM"
+        FB = "FACEBOOK"
         TIKTOK = "TIKTOK"
 
-    url = models.URLField(verbose_name="Ссылка на аккаунт", null=True)
+    url = models.URLField(verbose_name="Link to account", null=True)
     type = models.CharField(
         choices=SocialNetTypes.choices,
         max_length=50,
         default=SocialNetTypes.INSTAGRAM,
-        verbose_name="Тип",
+        verbose_name="Type",
     )
     active = models.BooleanField(default=True)
     logo = models.ImageField(
-        upload_to="media/social", null=True, verbose_name="Лого"
+        upload_to="media/social", null=True, verbose_name="Logo"
     )
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, null=True, related_name="socials"
@@ -162,18 +129,16 @@ class SocialNet(BaseModel):
 
 
 class Address(BaseModel):
-    """Адрес"""
-
     longitude = models.DecimalField(
-        verbose_name="Долгота", max_digits=9, decimal_places=6
+        verbose_name="Longitude", max_digits=9, decimal_places=6
     )
     latitude = models.DecimalField(
-        verbose_name="Широта", max_digits=9, decimal_places=7
+        verbose_name="Latitude", max_digits=9, decimal_places=7
     )
-    street = models.CharField("Улица", max_length=255)
-    house = models.PositiveIntegerField("Дом")
+    street = models.CharField("Street", max_length=255)
+    house = models.PositiveIntegerField("House")
     city = models.ForeignKey(
-        City, on_delete=models.CASCADE, verbose_name="Город"
+        City, on_delete=models.CASCADE, verbose_name="City"
     )
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, null=True, related_name="addresses"
@@ -184,9 +149,7 @@ class Address(BaseModel):
 
 
 class Number(BaseModel):
-    """Телефонный номер"""
-
-    phone = models.CharField("Номер телефона", max_length=25, unique=True)
+    phone = models.CharField("Phone number", max_length=25, unique=True)
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, null=True, related_name="phones"
     )
@@ -203,8 +166,6 @@ class ClientDetail(BaseModel):
 
 
 class ClientDiscount(BaseModel):
-    """Купоны"""
-
     class STATUSES(models.TextChoices):
         BOOKED = "BOOKED", _("BOOKED")
         WASTED = "WASTED", _("WASTED")
@@ -228,36 +189,30 @@ class ClientDiscount(BaseModel):
 
 
 class DiscountLimit(BaseModel):
-    """Ограничения для акции"""
-
-    day_limit = models.PositiveSmallIntegerField(
-        verbose_name="Ограничение на 1 день"
-    )
+    day_limit = models.PositiveSmallIntegerField(verbose_name="Day limit")
     total_limit = models.PositiveSmallIntegerField(
-        verbose_name="Количество купонов"
+        verbose_name="Total coupons"
     )
     discount = models.ForeignKey(
         Discount, on_delete=models.CASCADE, related_name="limits"
     )
 
     def __str__(self):
-        return f" Лимиты {self.discount}"
+        return f"Limits {self.discount}"
 
 
 class Review(BaseModel):
-    """Отзыв"""
-
     text = models.TextField()
     add_date = models.DateTimeField(auto_now_add=True)
-    author = models.CharField("Автор", max_length=25)
+    author = models.CharField("Author", max_length=25)
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.author} на {self.discount}"
+        return f"{self.author} {self.discount}"
 
 
 class Instruction(BaseModel):
     text = models.TextField()
 
     def __str__(self):
-        return "Инструкция"
+        return self.text
