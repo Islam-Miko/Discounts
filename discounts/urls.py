@@ -22,5 +22,4 @@ urlpatterns = [
     # написания отзыва к акции
     path("discounts/<int:pk>/coupon", views.CouponCreateAPIView.as_view()),
     # получение купона
-    path("categories", views.CategoryView.as_view()),
 ] + router.urls

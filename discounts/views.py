@@ -19,13 +19,12 @@ from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 
-from discounts.models import Category, ClientDiscount, Discount, Review
+from discounts.models import ClientDiscount, Discount, Review
 
 from . import filters as custom_filters
 from . import service
 from .decorators import increment_views
 from .serializers import (
-    CategorySerialzir,
     CouponCreateSerializer,
     CouponGetSerializer,
     DiscountFullInformationSerializer,
@@ -135,11 +134,6 @@ class CouponCreateAPIView(generics.CreateAPIView):
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
-
-
-class CategoryView(generics.ListAPIView):
-    queryset = Category.objects.order_by("order_num").all()
-    serializer_class = CategorySerialzir
 
 
 class CouponAPIView(
