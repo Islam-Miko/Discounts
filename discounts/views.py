@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from drf_spectacular.utils import extend_schema
-from rest_framework import filters, generics, pagination, status, viewsets
+from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
@@ -52,7 +52,6 @@ class DiscountListAPIView(generics.ListAPIView):
         .order_by("company__addresses__city__order_num", "order_num")
     )
     serializer_class = DiscountShortInformationSerializer
-    pagination_class = pagination.LimitOffsetPagination
     filter_backends = [
         filters.OrderingFilter,
         filters.SearchFilter,
