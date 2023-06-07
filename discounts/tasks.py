@@ -16,9 +16,9 @@ def increment_count(discount_id: int) -> None:
     :params discount_id: id of related Discount
     :type discount_id: int
     """
-    WatchedAmount.objects.filter(discount__id=discount_id).update(
-        amount=F("amount") + 1
-    )
+    WatchedAmount.objects.filter(
+        discount__id=discount_id, discount__active=True
+    ).update(amount=F("amount") + 1)
 
 
 @db_periodic_task(crontab())
