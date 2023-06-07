@@ -1,4 +1,5 @@
 from datetime import timedelta
+from random import randint
 
 import factory
 from django.utils import timezone
@@ -12,6 +13,11 @@ from discounts import models
 class DiscountUserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = auth_model.DiscountUser
+
+    username = factory.Faker("user_name")
+    email = factory.Faker("email")
+    phone_number = factory.Faker("numerify", text="############")
+    passport_id = factory.Faker("numerify", text="############")
 
 
 class CategoryFactory(factory.django.DjangoModelFactory):
@@ -50,3 +56,19 @@ class DiscountFactory(factory.django.DjangoModelFactory):
     company = factory.SubFactory(CompanyFactory)
     instruction = factory.SubFactory(InstructionFactory)
     order_num = factory.Sequence(lambda n: n + 1)
+
+
+class DiscountLimitFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DiscountLimit
+
+    day_limit = randint(1, 10)
+    total_limit = randint(10, 50)
+
+
+class ClientDiscountFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.ClientDiscount
+
+    client = factory.SubFactory(DiscountUserFactory)
+    discount = factory.SubFactory(DiscountFactory)
