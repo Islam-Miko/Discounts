@@ -70,7 +70,7 @@ class Discount(BaseModel):
     order_num = models.PositiveSmallIntegerField(default=1)
 
     def __str__(self):
-        return f"{self.percentage}%  {self.company.name} {self.city}"
+        return f"{self.percentage}%  {self.company.name}"
 
 
 class WatchedAmount(BaseModel):

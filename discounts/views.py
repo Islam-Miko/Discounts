@@ -14,18 +14,17 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from drf_spectacular.utils import extend_schema
-from rest_framework import filters, generics, pagination, status, viewsets
+from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 
-from discounts.models import Category, ClientDiscount, Discount, Review
+from discounts.models import ClientDiscount, Discount, Review
 
 from . import filters as custom_filters
 from . import service
 from .decorators import increment_views
 from .serializers import (
-    CategorySerialzir,
     CouponCreateSerializer,
     CouponGetSerializer,
     DiscountFullInformationSerializer,
@@ -53,7 +52,6 @@ class DiscountListAPIView(generics.ListAPIView):
         .order_by("company__addresses__city__order_num", "order_num")
     )
     serializer_class = DiscountShortInformationSerializer
-    pagination_class = pagination.LimitOffsetPagination
     filter_backends = [
         filters.OrderingFilter,
         filters.SearchFilter,
@@ -135,11 +133,6 @@ class CouponCreateAPIView(generics.CreateAPIView):
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
-
-
-class CategoryView(generics.ListAPIView):
-    queryset = Category.objects.order_by("order_num").all()
-    serializer_class = CategorySerialzir
 
 
 class CouponAPIView(
